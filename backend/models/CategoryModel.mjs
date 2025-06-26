@@ -34,15 +34,15 @@ export class CategoryModel extends DatabaseModel {
         return this.query(`
             UPDATE categories
             SET name = ?
-            WHERE id = ?
+            WHERE category_id = ?
         `, [category.name, category.id])
     }
 
     static delete(id) {
         return this.query(`
             UPDATE categories
-            SET deleted = 0
-            WHERE id = ?
+            SET deleted = 1
+            WHERE category_id = ?
         `, [id])
     }
 }

@@ -25,7 +25,11 @@ export class IdeaTagModel extends DatabaseModel {
             `, [ideaTag.ideaId, ideaTag.tagId])
     }
 
+    static deleteByIdeaId(ideaId) {
+        return this.query("DELETE FROM ideas_tags WHERE idea_id = ?", [ideaId])
+    }
+
     static delete(id) {
-        return this.query("DELETE FROM ideas_tags WHERE id = ?", [id])
+        return this.query("DELETE FROM ideas_tags WHERE idea_tag_id = ?", [id])
     }
 }

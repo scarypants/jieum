@@ -7,10 +7,10 @@ export class CategoryController {
     static routes = express.Router()
 
     static {
-        this.routes.get("/", AuthenticationController.restrict(["admin"]), this.getCategories)
-        this.routes.post("/", AuthenticationController.restrict(["admin"]), this.createCategory)
-        this.routes.patch("/:id", AuthenticationController.restrict(["admin"]), this.updateCategory)
-        this.routes.delete("/:id", AuthenticationController.restrict(["admin"]), this.deleteCategory)
+        this.routes.get("/", this.getCategories)
+        this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.createCategory)
+        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.updateCategory)
+        this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.deleteCategory)
     }
 
     /**
@@ -21,8 +21,7 @@ export class CategoryController {
      *      get:
      *          summary: 모든 카테고리 목록 가져오기
      *          tags: [카테고리]
-     *          security:
-     *              - bearerAuth: []
+     *          security: []
      *          responses:
      *              '200':
      *                  description: 카테고리 목록
@@ -45,9 +44,7 @@ export class CategoryController {
             res.status(200).json(categories)
         } catch (error) {
             console.error(error)
-            res.status(500).json({
-                message: "데이터베이스에서 카테고리 데이터를 가져오는데 실패했습니다."
-            })
+            res.status(500).json({ message: "데이터베이스에서 카테고리 데이터를 가져오는데 실패했습니다." })
         }
     }
 
@@ -79,10 +76,12 @@ export class CategoryController {
         try {
             const name = validator.escape(req.body.name)
 
+            // 유효성 검사
             if (!name) {
                 res.status(400).json({ message: "카테고리 이름을 입력하세요." })
                 return
             }
+
             const category = new CategoryModel(
                 null,
                 name,
@@ -95,11 +94,8 @@ export class CategoryController {
                 message: "성공적으로 카테고리가 등록되었습니다."
             })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                message: "카테고리 등록 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            console.error(error)
+            res.status(500).json({ message: "카테고리 등록 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -140,11 +136,12 @@ export class CategoryController {
             const id = req.params.id
             const name = validator.escape(req.body.name)
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
             }
-            if (!formData.name) {
+            if (!name) {
                 res.status(400).json({ message: "카테고리 이름을 입력하세요." })
                 return
             }
@@ -163,10 +160,7 @@ export class CategoryController {
             }
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "카테고리 수정 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "카테고리 수정 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -200,6 +194,7 @@ export class CategoryController {
         try {
             const id = req.params.id
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
@@ -213,10 +208,7 @@ export class CategoryController {
             }
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "카테고리 삭제 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "카테고리 삭제 중 서버 에러가 발생했습니다." })
         }
     }
 

@@ -23,11 +23,11 @@ export class TagModel extends DatabaseModel {
         `, [tag.name])
     }
 
-    static update(tag) {
-        return this.query(`
-            UPDATE tags
-            SET name = ?
-            WHERE id = ?
-        `, [tag.name, tag.id])
+    static getByName(name) {
+        return this.query(" SELECT * FROM tags WHERE name = ?", [name])
+            .then(result => result.length > 0
+                    ? this.tableToModel(result[0].tags)
+                    : Promise.reject("not found")
+                )
     }
 }

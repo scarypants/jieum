@@ -64,13 +64,13 @@ export class APIController {
 
         // 유효성 검사 오류 핸들러
         this.routes.use((err, req, res, next) => {
+            console.error("Global Error: ", err.stack || err)
             res.status(err.status || 500).json({
                 message: err.message
             })
         })
 
-        // JWT 인증 미들웨어 & 인증 라우트 연결
-        this.routes.use(AuthenticationController.middleware)
+        this.routes.use("/users", UserController.routes)
         this.routes.use("/auth", AuthenticationController.routes)
 
         // 추가 API 컨트롤러
@@ -78,6 +78,5 @@ export class APIController {
         this.routes.use("/comments", CommentController.routes)
         this.routes.use("/ideas", IdeaController.routes)
         this.routes.use("/scraps", ScrapController.routes)
-        this.routes.use("/users", UserController.routes)
     }
 }

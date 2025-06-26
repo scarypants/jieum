@@ -39,15 +39,23 @@ export class IdeaModel extends DatabaseModel {
             `, [idea.writerId, idea.categoryId, idea.title, idea.content])
     }
 
+    static getById(id) {
+        return this.query("SELECT * FROM ideas WHERE idea_id = ?", [id])
+            .then(result => result.length > 0
+                    ? result.map(row => this.tableToModel(row))
+                    : Promise.reject("not found")
+                )
+    }
+
     static update(idea) {
         return this.query(`
                 UPDATE ideas
                 SET category_id = ?, title = ?, content = ?
-                WHERE id = ?
+                WHERE idea_id = ?
             `, [idea.categoryId, idea.title, idea.content, idea.id])
     }
 
     static delete(id) {
-        return this.query("UPDATE ideas SET deleted = 1 WHERE id = ?", [id])
+        return this.query("UPDATE ideas SET deleted = 1 WHERE idea_id = ?", [id])
     }
 }

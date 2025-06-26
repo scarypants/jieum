@@ -27,15 +27,23 @@ export class CommentModel extends DatabaseModel {
         `, [comment.writerId, comment.ideaId, comment.content])
     }
 
+    static getById(id) {
+        return this.query("SELECT * FROM comments WHERE comment_id = ?", [id])
+            .then(result => result.length > 0
+                    ? result.map(row => this.tableToModel(row))
+                    : Promise.reject("not found")
+                )
+    }
+
     static update(comment) {
         return this.query(`
             UPDATE comments
             SET writer_id = ?, idea_id = ?, content = ?
-            WHERE id = ?
+            WHERE comment_id = ?
         `, [comment.writerId, comment.ideaId, comment.content, comment.id])
     }
 
     static delete(id) {
-        return this.query("DELETE FROM comments WHERE id = ?", [id])
+        return this.query("DELETE FROM comments WHERE comment_id = ?", [id])
     }
 }

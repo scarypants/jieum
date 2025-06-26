@@ -15,6 +15,9 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+app.get("/", (req, res) => {
+    res.status(301).redirect("/api/docs")
+})
 
 // Use routes (from controllers)
 app.use("/api", APIController.routes)

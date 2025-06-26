@@ -8,9 +8,9 @@ export class ScrapController {
     static routes = express.Router()
 
     static {
-        this.routes.get("/", AuthenticationController.restrict(["member", "admin"]), this.getScraps)
-        this.routes.post("/", AuthenticationController.restrict(["member", "admin"]), this.createScrap)
-        this.routes.delete("/:id", AuthenticationController.restrict(["member", "admin"]), this.deleteScrap)
+        this.routes.get("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.getScraps)
+        this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createScrap)
+        this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.deleteScrap)
     }
 
     /**
@@ -53,9 +53,7 @@ export class ScrapController {
             res.status(200).json(scraps)
         } catch (error) {
             console.error(error)
-            res.status(500).json({
-                message: "데이터베이스에서 스크랩 데이터를 가져오는데 실패했습니다."
-            })
+            res.status(500).json({ message: "데이터베이스에서 스크랩 데이터를 가져오는데 실패했습니다." })
         }
     }
 
@@ -88,6 +86,7 @@ export class ScrapController {
             const userId = req.body.writerId
             const ideaId = req.body.ideaId
 
+            // 유효성 검사
             if (!userId || userId != req.authenticatedUser.id || !validator.isNumeric(userId)) {
                 res.status(400).json({ message: "올바른 사용자 ID를 입력하세요." })
                 return
@@ -96,6 +95,7 @@ export class ScrapController {
                 res.status(400).json({ message: "올바른 아이디어 ID를 입력하세요." })
                 return
             }
+
             const scrap = new ScrapModel(
                 null,
                 userId,
@@ -109,10 +109,7 @@ export class ScrapController {
             })
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "스크랩 저장 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "스크랩 저장 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -146,8 +143,16 @@ export class ScrapController {
         try {
             const id = req.params.id
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
+                return
+            }
+
+            // 스크랩한 사용자만 스크랩 삭제 가능
+            const scrap = await ScrapModel.getById(id)
+            if (req.authenticatedUser.id != scrap.userId) {
+                res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
                 return
             }
 
@@ -159,11 +164,15 @@ export class ScrapController {
             }
             
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                message: "스크랩 삭제 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            switch (error) {
+                case "not found":
+                    res.status(400).json({ message: "결과 데이터가 없습니다." })
+                    break;
+                default:
+                    console.error(error)
+                    res.status(500).json({ message: "스크랩 삭제 중 서버 에러가 발생했습니다." })
+                    break;
+            }
         }
     }
 

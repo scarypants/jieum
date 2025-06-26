@@ -23,7 +23,15 @@ export class ScrapModel extends DatabaseModel {
             `, [scrap.userId, scrap.ideaId])
     }
 
+    static getById(id) {
+        return this.query("SELECT * FROM scraps WHERE scrap_id = ?", [id])
+            .then(result => result.length > 0
+                    ? this.tableToModel(result[0].scraps)
+                    : Promise.reject("not found")
+                )
+    }
+
     static delete(id) {
-        return this.query("DELETE FROM scraps WHERE id = ?", [id])
+        return this.query("DELETE FROM scraps WHERE scrap_id = ?", [id])
     }
 }

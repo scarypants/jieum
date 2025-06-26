@@ -12,7 +12,7 @@ export class AuthenticationController {
     static secret = process.env.JWT_SECRET
 
     static {
-        this.middleware.use(this.#AuthenticationProvider)
+        this.middleware.use(this.AuthenticationProvider)
         this.routes.post("/", this.authenticate)
     }
 
@@ -28,7 +28,7 @@ export class AuthenticationController {
      * @param {express.Response} res
      * @param {express.NextFunction} next
      */
-    static async #AuthenticationProvider(req, res, next) {
+    static async AuthenticationProvider(req, res, next) {
         const authHeader = req.headers.authorization
         if (authHeader) {
             try {
@@ -40,8 +40,9 @@ export class AuthenticationController {
                     return res.status(401).json({ message: "인증 실패: 잘못된 토큰 형식입니다." })
                 }
 
-                const decoded = jwt.verify(token, this.secret)
+                const decoded = jwt.verify(token, AuthenticationController.secret)
                 req.authenticatedUser = decoded
+                console.log(JSON.stringify(req.authenticatedUser))
             } catch (error) {
                 if (error.name === "TokenExpiredError") {
                     res.status(401).json({ message: "인증 실패: 토큰이 만료되었습니다." })
@@ -69,6 +70,7 @@ export class AuthenticationController {
      *      post:
      *          summary: 아이디와 비밀번호로 로그인
      *          tags: [인증]
+     *          security: []
      *          requestBody:
      *              required: true
      *              content:
@@ -93,16 +95,21 @@ export class AuthenticationController {
                 res.status(400).json({ message: "유효한 아이디를 입력해주세요." })
                 return
             }
-
             if (!password || !validator.isLength(password, { min: 8 })) {
                 res.status(400).json({ message: "비밀번호는 최소 8자 이상이어야 합니다." })
                 return
             }
 
-            const user = await UserModel.getByLoginId(formData.loginId)
+            const user = await UserModel.getByLoginId(loginId)
+
+            if (!user) {
+                res.status(400).json({ message: "아이디 또는 비밀번호가 잘못되었습니다." })
+                return
+            }
+
             console.log(JSON.stringify(user))
 
-            if (await bcrypt.compare(formData.password, user.password)) {
+            if (await bcrypt.compare(password, user.password)) {
                 const token = jwt.sign(
                     { id: user.id, role: user.role }, 
                     process.env.JWT_SECRET, 
@@ -137,14 +144,10 @@ export class AuthenticationController {
                 if (allowedRoles.includes(req.authenticatedUser.role)) {
                     next()
                 } else {
-                    res.status(403).json({
-                        message: "접근 거부: 권한이 없습니다."
-                    })
+                    res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
                 }
             } else {
-                res.status(401).json({
-                    message: "인증 필요: 로그인 후 접근하세요."
-                })
+                res.status(401).json({ message: "인증 필요: 로그인 후 접근하세요." })
             }
         }
     }

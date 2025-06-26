@@ -1,10 +1,10 @@
 components:
-  schemas:
-    securitySchemes:
+  securitySchemes:
       bearerAuth:
         type: http
         scheme: bearer
         bearerFormat: JWT
+  schemas:
     UserCredentials:
       type: object
       required:
@@ -13,10 +13,10 @@ components:
       properties:
         loginId:
           type: string
-          example: admin
+          example: miso
         password:
           type: string
-          example: admin
+          example: adminmiso
     Token:
       type: object
       required:
@@ -37,6 +37,9 @@ components:
         name:
           type: string
           example: IT
+        deleted:
+          type: number
+          example: 0
     Comment:
       type: object
       required:
@@ -74,14 +77,9 @@ components:
     Idea:
       type: object
       required:
-        - writerId
         - categoryId
         - title
         - content
-        - date
-        - createdAt
-        - views
-        - scraps
       properties:
         id:
           type: number
@@ -118,7 +116,6 @@ components:
     User:
       type: object
       required:
-        - role
         - nickname
         - loginId
         - password
@@ -126,18 +123,63 @@ components:
         id:
           type: number
           example: 1
+        role:
+          type: string
+          example: "admin"
         nickname:
           type: string
-          example: miso
+          example: 미소
         loginId:
           type: string
-          example: admin
+          example: miso
         password:
           type: string
-          example: admin
+          example: adminmiso
         deleted:
           type: number
           example: 0
+    UserNickname:
+      type: object
+      required:
+        - nickname
+      properties:
+        nickname:
+          type: string
+          example: miso
+    CategoryName:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: IT
+    IdeaTag:
+      type: object
+      required:
+        - ideaId
+        - tagId
+      properties:
+        id:
+          type: number
+          example: 1
+        ideaId:
+          type: number
+          example: 1
+        tagId:
+          type: number
+          example: 1
+    Tag:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: 컴퓨터
   responses:
     LoginSuccessful:
       description: 로그인 성공

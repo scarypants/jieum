@@ -39,15 +39,31 @@ export class UserModel extends DatabaseModel {
     static getByLoginId(loginId) {
         return this.query("SELECT * FROM users WHERE login_id = ? AND deleted = 0", [loginId])
             .then(result => result.length > 0
-                    ? result.map(row => this.tableToModel(row))
+                    ? this.tableToModel(result[0].users)
                     : Promise.reject("not found")
                 )
     }
 
-    static getById(id) {
-        return this.query("SELECT * FROM users WHERE id = ? AND deleted = 0", [id])
+    static getLoginIdDup(loginId) {
+        return this.query("SELECT * FROM users WHERE login_id = ? AND deleted = 0", [loginId])
             .then(result => result.length > 0
-                    ? result.map(row => this.tableToModel(row))
+                    ? this.tableToModel(result[0].users)
+                    : null
+                )
+    }
+
+    static getNicknameDup(nickname) {
+        return this.query("SELECT * FROM users WHERE nickname = ? AND deleted = 0", [nickname])
+            .then(result => result.length > 0
+                    ? this.tableToModel(result[0].users)
+                    : null
+                )
+    }
+
+    static getById(id) {
+        return this.query("SELECT * FROM users WHERE user_id = ? AND deleted = 0", [id])
+            .then(result => result.length > 0
+                    ? this.tableToModel(result[0].users)
                     : Promise.reject("not found")
                 )
     }
@@ -56,15 +72,15 @@ export class UserModel extends DatabaseModel {
         return this.query(`
             UPDATE users
             SET role = ?, nickname = ?, login_id = ?, password = ?
-            WHERE id = ?
+            WHERE user_id = ?
         `, [user.role, user.nickname, user.loginId, user.password, user.id])
     }
 
     static delete(id) {
         return this.query(`
             UPDATE users
-            SET deleted = 0
-            WHERE id = ?
+            SET deleted = 1
+            WHERE user_id = ?
         `, [id])
     }
 }

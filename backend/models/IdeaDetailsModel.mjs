@@ -31,7 +31,7 @@ export class IdeaDetailsModel extends DatabaseModel {
         )
     }
 
-    static getAll({ category, search, sort } = {}) {
+    static getAll({ category: category, search: search, sort: sort } = {}) {
         let sql = `
             SELECT 
                 ideas.*, 
@@ -44,9 +44,9 @@ export class IdeaDetailsModel extends DatabaseModel {
             FROM ideas
             JOIN users AS writer ON ideas.writer_id = writer.id
             JOIN categories ON ideas.category_id = categories.id
-            JOIN ideas_tags ON ideas.id = ideas_tags.idea_id
+            JOIN ideas_tags ON ideas.idea_id = ideas_tags.idea_id
             JOIN tags ON ideas_tags.tag_id = tags.id
-            JOIN comments ON ideas.id = comments.idea_id
+            JOIN comments ON ideas.idea_id = comments.idea_id
             JOIN users AS comment_writer ON comments.writer_id = comment_writer.id
             WHERE ideas.deleted = 0
             AND writer.deleted = 0
@@ -99,15 +99,15 @@ export class IdeaDetailsModel extends DatabaseModel {
             FROM ideas
             JOIN users AS writer ON ideas.writer_id = writer.id
             JOIN categories ON ideas.category_id = categories.id
-            JOIN ideas_tags ON ideas.id = ideas_tags.idea_id
+            JOIN ideas_tags ON ideas.idea_id = ideas_tags.idea_id
             JOIN tags ON ideas_tags.tag_id = tags.id
-            JOIN comments ON ideas.id = comments.idea_id
+            JOIN comments ON ideas.idea_id = comments.idea_id
             JOIN users AS comment_writer ON comments.writer_id = comment_writer.id
             WHERE ideas.deleted = 0
             AND writer.deleted = 0
             AND categories.deleted = 0
             AND comment_writer.deleted = 0
-            AND ideas.id = ?
+            AND ideas.idea_id = ?
         `, [id])
             .then(result => result.length > 0
                     ? result.map(row => this.tableToModel(row))
@@ -128,9 +128,9 @@ export class IdeaDetailsModel extends DatabaseModel {
             FROM ideas
             JOIN users AS writer ON ideas.writer_id = writer.id
             JOIN categories ON ideas.category_id = categories.id
-            JOIN ideas_tags ON ideas.id = ideas_tags.idea_id
+            JOIN ideas_tags ON ideas.idea_id = ideas_tags.idea_id
             JOIN tags ON ideas_tags.tag_id = tags.id
-            JOIN comments ON ideas.id = comments.idea_id
+            JOIN comments ON ideas.idea_id = comments.idea_id
             JOIN users AS comment_writer ON comments.writer_id = comment_writer.id
             WHERE ideas.deleted = 0
             AND writer.deleted = 0

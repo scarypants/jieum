@@ -1,5 +1,6 @@
 import express from "express"
 import validator from "validator"
+import bcrypt from "bcryptjs"
 import { AuthenticationController } from "./AuthenticationController.mjs"
 import { UserModel } from "../models/UserModel.mjs"
 
@@ -7,12 +8,12 @@ export class UserController {
     static routes = express.Router()
 
     static {
-        this.routes.get("/", AuthenticationController.restrict(["admin"]), this.getUsers)
-        this.routes.get("/:id", AuthenticationController.restrict(["admin"]), this.getUser)
-        this.routes.get("/me", AuthenticationController.restrict(["member", "admin"]), this.getMyInfo)
+        this.routes.get("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.getUsers)
+        this.routes.get("/me", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.getMyInfo)
+        this.routes.get("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.getUser)
         this.routes.post("/", this.createUser)
-        this.routes.patch("/:id", AuthenticationController.restrict(["member", "admin"]), this.updateUser)
-        this.routes.delete("/:id", AuthenticationController.restrict(["member", "admin"]), this.deleteUser)
+        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateUser)
+        this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.deleteUser)
     }
 
     /**
@@ -47,9 +48,7 @@ export class UserController {
             res.status(200).json(users)
         } catch (error) {
             console.error(error)
-            res.status(500).json({
-                message: "데이터베이스에서 사용자 데이터를 가져오는데 실패했습니다."
-            })
+            res.status(500).json({ message: "데이터베이스에서 사용자 데이터를 가져오는데 실패했습니다." })
         }
     }
 
@@ -71,15 +70,15 @@ export class UserController {
      *                schema:
      *                    type: number
      *                    example: 1
-     *          requestBody:
-     *              required: true
-     *              content:
-     *                  application/json:
-     *                      schema:
-     *                          $ref: "#/components/schemas/User"
      *          responses:
      *              '200':
-     *                  $ref: "#/components/responses/Created"
+     *                  description: 사용자 정보
+     *                  content:
+     *                      application/json:
+     *                          schema:
+     *                              $ref: "#/components/schemas/User"
+     *              '400':
+     *                  $ref: "#/components/responses/Error"
      *              '500':
      *                  $ref: "#/components/responses/Error"
      *              default:
@@ -89,6 +88,7 @@ export class UserController {
         try {
             const id = req.params.id
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
@@ -97,9 +97,7 @@ export class UserController {
             res.status(200).json(user)
         } catch (error) {
             console.error(error)
-            res.status(500).json({
-                message: "데이터베이스에서 사용자 데이터를 가져오는데 실패했습니다."
-            })
+            res.status(500).json({ message: "데이터베이스에서 사용자 데이터를 가져오는데 실패했습니다." })
         }
     }
 
@@ -113,15 +111,15 @@ export class UserController {
      *          tags: [사용자]
      *          security:
      *              - bearerAuth: []
-     *          requestBody:
-     *              required: true
-     *              content:
-     *                  application/json:
-     *                      schema:
-     *                          $ref: "#/components/schemas/User"
      *          responses:
      *              '200':
-     *                  $ref: "#/components/responses/Created"
+     *                  description: 사용자 정보
+     *                  content:
+     *                      application/json:
+     *                          schema:
+     *                              $ref: "#/components/schemas/User"
+     *              '400':
+     *                  $ref: "#/components/responses/Error"
      *              '500':
      *                  $ref: "#/components/responses/Error"
      *              default:
@@ -143,10 +141,11 @@ export class UserController {
      * 
      * @type {express.RequestHandler}
      * @openapi
-     *  /api/categories:
+     *  /api/users:
      *      post:
      *          summary: 회원가입
      *          tags: [사용자]
+     *          security: []
      *          requestBody:
      *              required: true
      *              content:
@@ -167,6 +166,7 @@ export class UserController {
             const loginId = req.body.loginId
             const password = req.body.password
 
+            // 유효성 검사
             if (!nickname) {
                 res.status(400).json({ message: "닉네임을 입력해주세요." })
                 return
@@ -180,6 +180,18 @@ export class UserController {
                 return
             }
 
+            // 중복 검사
+            const isNicknameDup = await UserModel.getNicknameDup(nickname)
+            const isLoginIdDup = await UserModel.getLoginIdDup(loginId)
+            if (isNicknameDup) {
+                res.status(409).json({ message: "이미 존재하는 닉네임입니다." })
+                return
+            }
+            if (isLoginIdDup) {
+                res.status(409).json({ message: "이미 존재하는 아이디입니다." })
+                return
+            }
+
             const user = new UserModel(
                 null,
                 "member",
@@ -189,6 +201,7 @@ export class UserController {
                 0
             )
             
+            // 비밀번호 해시
             if (!user.password.startsWith("$2a")) {
                 user.password = bcrypt.hashSync(user.password)
             }
@@ -199,11 +212,8 @@ export class UserController {
                 message: "성공적으로 회원가입 되었습니다."
             })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                message: "회원가입 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            console.error(error.stack)
+            res.status(500).json({ message: "회원가입 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -236,12 +246,16 @@ export class UserController {
      *                  $ref: "#/components/responses/Updated"
      *              '404':
      *                  $ref: "#/components/responses/NotFound"
+     *              '400':
+     *                  $ref: "#/components/responses/Error"
      *              '500':
      *                  $ref: "#/components/responses/Error"
      */
     static async updateUser(req, res) {
         try {
             let user
+
+            // 유효성 검사, 관리자는 역할만 수정 가능, 사용자는 닉네임, 아이디, 비밀번호 수정 가능
             if (!req.params.id || !validator.isNumeric(req.params.id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
@@ -309,10 +323,7 @@ export class UserController {
             }
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "사용자 정보 수정 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "사용자 정보 수정 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -346,6 +357,7 @@ export class UserController {
         try {
             const id = req.params.id
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
@@ -359,10 +371,7 @@ export class UserController {
             }
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "사용자 삭제 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "사용자 삭제 중 서버 에러가 발생했습니다." })
         }
     }
 

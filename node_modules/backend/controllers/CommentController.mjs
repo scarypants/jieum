@@ -7,9 +7,9 @@ export class CommentController {
     static routes = express.Router()
 
     static {
-        this.routes.post("/", AuthenticationController.restrict(["member", "admin"]), this.createComment)
-        this.routes.patch("/:id", AuthenticationController.restrict(["member", "admin"]), this.updateComment)
-        this.routes.delete("/:id", AuthenticationController.restrict(["member", "admin"]), this.deleteComment)
+        this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createComment)
+        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateComment)
+        this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.deleteComment)
     }
 
     /**
@@ -42,6 +42,7 @@ export class CommentController {
             const ideaId = req.body.ideaId
             const content = validator.escape(req.body.content)
 
+            // 유효성 검사
             if (!writerId || !validator.isNumeric(writerId)) {
                 res.status(400).json({ message: "올바른 작성자 ID를 입력하세요." })
                 return
@@ -69,10 +70,7 @@ export class CommentController {
             })
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "댓글 등록 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "댓글 등록 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -115,6 +113,7 @@ export class CommentController {
             const ideaId = req.body.ideaId
             const content = validator.escape(req.body.content)
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
                 return
@@ -132,6 +131,7 @@ export class CommentController {
                 return
             }
 
+            // 댓글 작성자만 댓글 수정 가능
             if (req.authenticatedUser.id != writerId) {
                 res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
                 return
@@ -152,10 +152,7 @@ export class CommentController {
             }
         } catch (error) {
             console.log(error)
-            res.status(500).json({
-                message: "댓글 수정 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            res.status(500).json({ message: "댓글 수정 중 서버 에러가 발생했습니다." })
         }
     }
 
@@ -189,8 +186,16 @@ export class CommentController {
         try {
             const id = req.params.id
 
+            // 유효성 검사
             if (!id || !validator.isNumeric(id)) {
                 res.status(400).json({ message: "올바른 ID를 입력하세요." })
+                return
+            }
+
+            // 댓글 작성자 또는 관리자만 댓글 삭제 가능
+            const comment = await CommentModel.getById(id)
+            if (req.authenticatedUser.id != comment.writerId && req.authenticatedUser.role != "admin") {
+                res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
                 return
             }
 
@@ -201,11 +206,15 @@ export class CommentController {
                 res.status(404).json({ message: "삭제 실패: 댓글을 찾을 수 없습니다." })
             }
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                message: "댓글 삭제 중 서버 에러가 발생했습니다.",
-                errors: [error]
-            })
+            switch (error) {
+                case "not found":
+                    res.status(400).json({ message: "결과 데이터가 없습니다." })
+                    break;
+                default:
+                    console.error(error)
+                    res.status(500).json({ message: "댓글 삭제 중 서버 에러가 발생했습니다." })
+                    break;
+            }
         }
     }
 }
