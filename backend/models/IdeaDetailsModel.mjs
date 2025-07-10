@@ -4,7 +4,6 @@ import { UserModel } from "./UserModel.mjs"
 import { CategoryModel } from "./CategoryModel.mjs"
 import { TagModel } from "./TagModel.mjs"
 import { CommentModel } from "./CommentModel.mjs"
-import { IdeaTagModel } from "./IdeaTagModel.mjs"
 
 export class IdeaDetailsModel extends DatabaseModel {
 
