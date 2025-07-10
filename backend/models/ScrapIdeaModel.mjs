@@ -21,7 +21,7 @@ export class ScrapIdeaModel extends DatabaseModel {
         return this.query(`
                 SELECT scraps.*, ideas.*
                 FROM scraps
-                JOIN ideas ON scraps.idea_id = ideas.id
+                JOIN ideas ON scraps.idea_id = ideas.idea_id
                 WHERE scraps.user_id = ? AND ideas.deleted = 0
             `, [userId])
                 .then(result => result.length > 0

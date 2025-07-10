@@ -224,6 +224,24 @@ components:
         name:
           type: string
           example: 컴퓨터
+    Inquiry:
+      type: object
+      required:
+        - userId
+        - status
+      properties:
+        id:
+          type: number
+          example: 1
+        userId:
+          type: number
+          example: 1
+        status:
+          type: string
+          example: processing
+        deleted:
+          type: number
+          example: 0
   responses:
     LoginSuccessful:
       description: 로그인 성공
@@ -291,7 +309,7 @@ components:
               message:
                 type: string
                 example: 이미 존재하는 데이터입니다.
-    NotAuthorised:
+    Forbidden:
       description: 권한이 없습니다.
       content:
         application/json:

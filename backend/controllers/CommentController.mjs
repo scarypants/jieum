@@ -8,7 +8,6 @@ export class CommentController {
 
     static {
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createComment)
-        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateComment)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.deleteComment)
     }
 
@@ -86,108 +85,6 @@ export class CommentController {
      * @type {express.RequestHandler}
      * @openapi
      *  /api/comments/{id}:
-     *      patch:
-     *          summary: 특정 댓글 수정
-     *          tags: [댓글]
-     *          security:
-     *              - bearerAuth: []
-     *          parameters:
-     *              - name: id
-     *                in: path
-     *                description: 댓글 ID
-     *                required: true
-     *                schema:
-     *                    type: number
-     *                    example: 1
-     *          requestBody:
-     *              required: true
-     *              content:
-     *                  application/json:
-     *                      schema:
-     *                          type: object
-     *                          required:
-     *                            - writerId
-     *                            - ideaId
-     *                            - content
-     *                          properties:
-     *                              writerId:
-     *                                  type: number
-     *                                  example: 1
-     *                              ideaId:
-     *                                  type: number
-     *                                  example: 1
-     *                              content:
-     *                                  type: string
-     *                                  example: 아이디어 잘 보고 갑니다.
-     *          responses:
-     *              '200':
-     *                  $ref: "#/components/responses/Updated"
-     *              '400':
-     *                  $ref: "#/components/responses/Error"
-     *              '403':
-     *                  $ref: "#/components/responses/NotAuthorised"
-     *              '404':
-     *                  $ref: "#/components/responses/NotFound"
-     *              '500':
-     *                  $ref: "#/components/responses/Error"
-     *              default:
-     *                  $ref: "#/components/responses/Error"
-     */
-    static async updateComment(req, res) {
-        try {
-            const id = req.params.id
-            const writerId = req.body.writerId
-            const ideaId = req.body.ideaId
-            const content = validator.escape(req.body.content)
-
-            // 유효성 검사
-            if (!id || !validator.isNumeric(String(id))) {
-                res.status(400).json({ message: "올바른 ID를 입력하세요." })
-                return
-            }
-            if (!writerId || !validator.isNumeric(String(writerId))) {
-                res.status(400).json({ message: "올바른 작성자 ID를 입력하세요." })
-                return
-            }
-            if (!ideaId || !validator.isNumeric(String(ideaId))) {
-                res.status(400).json({ message: "올바른 아이디어 ID를 입력하세요." })
-                return
-            }
-            if (!content) {
-                res.status(400).json({ message: "내용을 입력하세요." })
-                return
-            }
-
-            // 댓글 작성자만 댓글 수정 가능
-            if (req.authenticatedUser.id != writerId) {
-                res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
-                return
-            }
-
-            const comment = new CommentModel(
-                id,
-                req.authenticatedUser.id,
-                ideaId,
-                content
-            )
-            
-            const result = await CommentModel.update(comment)
-            if (result.affectedRows == 1) {
-                res.status(200).json({ message: "성공적으로 댓글이 수정되었습니다." }) 
-            } else {
-                res.status(404).json({ message: "수정 실패: 댓글을 찾을 수 없습니다." })
-            }
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({ message: "댓글 수정 중 서버 에러가 발생했습니다." })
-        }
-    }
-
-    /**
-     * 
-     * @type {express.RequestHandler}
-     * @openapi
-     *  /api/comments/{id}:
      *      delete:
      *          summary: 특정 댓글 삭제
      *          tags: [댓글]
@@ -207,7 +104,7 @@ export class CommentController {
      *              '400':
      *                  $ref: "#/components/responses/Error"
      *              '403':
-     *                  $ref: "#/components/responses/NotAuthorised"
+     *                  $ref: "#/components/responses/Forbidden"
      *              '404':
      *                  $ref: "#/components/responses/NotFound"
      *              '500':

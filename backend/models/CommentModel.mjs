@@ -35,14 +35,6 @@ export class CommentModel extends DatabaseModel {
                 )
     }
 
-    static update(comment) {
-        return this.query(`
-            UPDATE comments
-            SET writer_id = ?, idea_id = ?, content = ?
-            WHERE comment_id = ?
-        `, [comment.writerId, comment.ideaId, comment.content, comment.id])
-    }
-
     static delete(id) {
         return this.query("DELETE FROM comments WHERE comment_id = ?", [id])
     }

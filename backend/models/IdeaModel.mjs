@@ -57,16 +57,24 @@ export class IdeaModel extends DatabaseModel {
             `, [idea.categoryId, idea.title, idea.content, idea.id])
     }
 
-    static updateViewCount(id) {
+    static addViewCount(id) {
         return this.query("UPDATE ideas SET view_count = view_count + 1 WHERE idea_id = ?", [id])
     }
 
-    static updateScrapCount(id) {
+    static addScrapCount(id) {
         return this.query("UPDATE ideas SET scrap_count = scrap_count + 1 WHERE idea_id = ?", [id])
     }
 
-    static updateCommentCount(id) {
+    static subScrapCount(id) {
+        return this.query("UPDATE ideas SET scrap_count = scrap_count - 1 WHERE idea_id = ?", [id])
+    }
+
+    static addCommentCount(id) {
         return this.query("UPDATE ideas SET comment_count = comment_count + 1 WHERE idea_id = ?", [id])
+    }
+
+    static subCommentCount(id) {
+        return this.query("UPDATE ideas SET comment_count = comment_count - 1 WHERE idea_id = ?", [id])
     }
 
     static delete(id) {

@@ -30,14 +30,6 @@ export class CategoryModel extends DatabaseModel {
             .then(result => result.map(row => this.tableToModel(row.categories)))
     }
 
-    static update(category) {
-        return this.query(`
-            UPDATE categories
-            SET name = ?
-            WHERE category_id = ?
-        `, [category.name, category.id])
-    }
-
     static delete(id) {
         return this.query(`
             UPDATE categories

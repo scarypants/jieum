@@ -8,31 +8,13 @@ import { IdeaTagModel } from "./IdeaTagModel.mjs"
 
 export class IdeaDetailsModel extends DatabaseModel {
 
-    constructor(idea, writer, category, ideaTag, tag, comment, commentWriter) {
+    constructor(idea, writer, category, tags, comments) {
         super()
         this.idea = idea
         this.writer = writer
         this.category = category
-        this.ideaTag = ideaTag
-        this.tag = tag
-        this.comment = comment
-        this.commentWriter = commentWriter
-    }
-
-    static tableToModel(row) {
-        return new IdeaDetailsModel(
-            IdeaModel.tableToModel(row.ideas),
-            UserModel.tableToModel({
-                nickname: row.writer.writer_nickname
-            }),
-            CategoryModel.tableToModel(row.categories),
-            IdeaTagModel.tableToModel(row.ideas_tags),
-            TagModel.tableToModel(row.tags),
-            CommentModel.tableToModel(row.comments),
-            UserModel.tableToModel({
-                nickname: row.comment_writer.comment_writer_nickname
-            })
-        )
+        this.tags = tags
+        this.comments = comments
     }
 
     static getAll({ category: category, search: search, sort: sort } = {}) {
@@ -66,7 +48,7 @@ export class IdeaDetailsModel extends DatabaseModel {
         }
 
         if (search) {
-            sql += ` AND (ideas.title LIKE ? OR tags.name LIKE ? OR tags.name IS NULL)`
+            sql += ` AND (ideas.title LIKE ? OR tags.name LIKE ?)`
             values.push(`%${search}%`, `%${search}%`)
         }
 
@@ -88,11 +70,49 @@ export class IdeaDetailsModel extends DatabaseModel {
 
         return this.query(sql, values)
             .then(result => {
-                    console.log(result[0])
-                    return result.length > 0
-                    ? result.map(row => this.tableToModel(row))
-                    : Promise.reject("not found")
-                })
+                if (result.length === 0) return Promise.reject("not found")
+
+                const ideaMap = new Map()
+
+                for (const row of result) {
+                    const ideaId = row.ideas.idea_id
+
+                    if (!ideaMap.has(ideaId)) {
+                        ideaMap.set(ideaId, {
+                            idea: IdeaModel.tableToModel(row.ideas),
+                            writer: UserModel.tableToModel({ nickname: row.writer.writer_nickname }),
+                            category: CategoryModel.tableToModel({ name: row.categories.name }),
+                            tags: [],
+                            comments: []
+                        })
+                    }
+
+                    const current = ideaMap.get(ideaId)
+
+                    if (row.tags.tag_id && !current.tags.find(tag => tag.tag_id === row.tags.tag_id)) {
+                        current.tags.push(TagModel.tableToModel(row.tags))
+                    }
+
+                    if (row.comments.comment_id && !current.comments.find(c => c.comment.comment_id === row.comments.comment_id)) {
+                        const commentObj = {
+                            comment: CommentModel.tableToModel(row.comments),
+                            commentWriter: UserModel.tableToModel({ nickname: row.comment_writer.comment_writer_nickname })
+                        }
+
+                        current.comments.push(commentObj)
+                    }
+                }
+
+                return Array.from(ideaMap.values()).map(entry =>
+                    new IdeaDetailsModel(
+                        entry.idea,
+                        entry.writer,
+                        entry.category,
+                        entry.tags,
+                        entry.comments
+                    )
+                )
+            })
     }
 
     static getById(id) {
@@ -118,10 +138,49 @@ export class IdeaDetailsModel extends DatabaseModel {
             AND (comment_writer.deleted = 0 OR comment_writer.deleted IS NULL)
             AND ideas.idea_id = ?
         `, [id])
-            .then(result => result.length > 0
-                    ? result.map(row => this.tableToModel(row))
-                    : Promise.reject("not found")
+            .then(result => {
+                if (result.length === 0) return Promise.reject("not found")
+
+                const ideaMap = new Map()
+
+                for (const row of result) {
+                    const ideaId = row.ideas.idea_id
+
+                    if (!ideaMap.has(ideaId)) {
+                        ideaMap.set(ideaId, {
+                            idea: IdeaModel.tableToModel(row.ideas),
+                            writer: UserModel.tableToModel({ nickname: row.writer.writer_nickname }),
+                            category: CategoryModel.tableToModel({ name: row.categories.name }),
+                            tags: [],
+                            comments: []
+                        })
+                    }
+
+                    const current = ideaMap.get(ideaId)
+
+                    if (row.tags.tag_id && !current.tags.find(tag => tag.tag_id === row.tags.tag_id)) {
+                        current.tags.push(TagModel.tableToModel(row.tags))
+                    }
+
+                    if (row.comments.comment_id && !current.comments.find(c => c.comment.comment_id === row.comments.comment_id)) {
+                        const commentObj = {
+                            comment: CommentModel.tableToModel(row.comments),
+                            commentWriter: UserModel.tableToModel({ nickname: row.comment_writer.comment_writer_nickname })
+                        }
+
+                        current.comments.push(commentObj)
+                    }
+                }
+
+                const entry = Array.from(ideaMap.values())[0]
+                return new IdeaDetailsModel(
+                    entry.idea,
+                    entry.writer,
+                    entry.category,
+                    entry.tags,
+                    entry.comments
                 )
+            })
     }
 
     static getByWriterId(writerId, sort) {
@@ -165,9 +224,49 @@ export class IdeaDetailsModel extends DatabaseModel {
         }
 
         return this.query(sql, writerId)
-            .then(result => result.length > 0
-                    ? result.map(row => this.tableToModel(row))
-                    : Promise.reject("not found")
+            .then(result => {
+                if (result.length === 0) return Promise.reject("not found")
+
+                const ideaMap = new Map()
+
+                for (const row of result) {
+                    const ideaId = row.ideas.idea_id
+
+                    if (!ideaMap.has(ideaId)) {
+                        ideaMap.set(ideaId, {
+                            idea: IdeaModel.tableToModel(row.ideas),
+                            writer: UserModel.tableToModel({ nickname: row.writer.writer_nickname }),
+                            category: CategoryModel.tableToModel({ name: row.categories.name }),
+                            tags: [],
+                            comments: []
+                        })
+                    }
+
+                    const current = ideaMap.get(ideaId)
+
+                    if (row.tags.tag_id && !current.tags.find(tag => tag.tag_id === row.tags.tag_id)) {
+                        current.tags.push(TagModel.tableToModel(row.tags))
+                    }
+
+                    if (row.comments.comment_id && !current.comments.find(c => c.comment.comment_id === row.comments.comment_id)) {
+                        const commentObj = {
+                            comment: CommentModel.tableToModel(row.comments),
+                            commentWriter: UserModel.tableToModel({ nickname: row.comment_writer.comment_writer_nickname })
+                        }
+
+                        current.comments.push(commentObj)
+                    }
+                }
+
+                return Array.from(ideaMap.values()).map(entry =>
+                    new IdeaDetailsModel(
+                        entry.idea,
+                        entry.writer,
+                        entry.category,
+                        entry.tags,
+                        entry.comments
+                    )
                 )
+            })
     }
 }

@@ -71,9 +71,17 @@ export class UserModel extends DatabaseModel {
     static update(user) {
         return this.query(`
             UPDATE users
-            SET role = ?, nickname = ?, login_id = ?, password = ?
+            SET nickname = ?, login_id = ?, password = ?
             WHERE user_id = ?
-        `, [user.role, user.nickname, user.loginId, user.password, user.id])
+        `, [user.nickname, user.loginId, user.password, user.id])
+    }
+
+    static updateRole(id, role) {
+        return this.query(`
+            UPDATE users
+            SET role = ?
+            WHERE user_id = ?
+        `, [role, id])
     }
 
     static delete(id) {

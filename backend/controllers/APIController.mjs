@@ -8,6 +8,7 @@ import { CommentController } from "./CommentController.mjs"
 import { IdeaController } from "./IdeaController.mjs"
 import { ScrapController } from "./ScrapController.mjs"
 import { UserController } from "./UserController.mjs"
+import { InquiryController } from "./InquiryController.mjs"
 
 const options = {
     failOnErrors: true,
@@ -78,5 +79,6 @@ export class APIController {
         this.routes.use("/comments", CommentController.routes)
         this.routes.use("/ideas", IdeaController.routes)
         this.routes.use("/scraps", ScrapController.routes)
+        this.routes.use("/inquiries", InquiryController.routes)
     }
 }

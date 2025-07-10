@@ -11,8 +11,8 @@ export class IdeaController {
 
     static {
         this.routes.get("/", this.getIdeas)
-        this.routes.get("/:id", this.getIdea)
         this.routes.get("/me", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.getMyIdeas)
+        this.routes.get("/:id", this.getIdea)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createIdea)
         this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateIdea)
         this.routes.patch("/:id/views", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateViewCount)
@@ -36,13 +36,11 @@ export class IdeaController {
      *                description: 카테고리 이름
      *                schema:
      *                    type: string
-     *                    example: IT
      *              - name: search
      *                in: query
      *                description: 제목 또는 태그 이름
      *                schema:
      *                    type: string
-     *                    example: 컴퓨터
      *              - name: sort
      *                in: query
      *                description: 정렬 기준 (조회수순, 스크랩순, 댓글많은순, 최신순)
@@ -356,14 +354,15 @@ export class IdeaController {
                 validator.escape(title),
                 validator.escape(content)
             )
+
             const result = await IdeaModel.create(idea)
             const ideaId = result.insertId
 
             if (Array.isArray(rawTags) && rawTags.length > 0) {
                 const tags = Array.from(new Set(
                     rawTags
-                    .map(tag => typeof tag === 'string' ? validator.escape(tag.trim()) : '')
-                    .filter(tag => tag)
+                        .map(tag => typeof tag?.name === 'string' ? validator.escape(tag.name.trim()) : '')
+                        .filter(tag => tag)
                 ))
 
                 for (const name of tags) {
@@ -371,7 +370,7 @@ export class IdeaController {
                     let tagId
 
                     // 이미 존재하는 태그라면 해당 태그 ID 이용하고 존재하지 않는다면 생성
-                    if (tagRecord != "not found") {
+                    if (tagRecord) {
                         tagId = tagRecord.id
                     } else {
                         const newTag = new TagModel(null, name)
@@ -434,7 +433,7 @@ export class IdeaController {
      *              '400':
      *                  $ref: "#/components/responses/Error"
      *              '403':
-     *                  $ref: "#/components/responses/NotAuthorised"
+     *                  $ref: "#/components/responses/Forbidden"
      *              '500':
      *                  $ref: "#/components/responses/Error"
      *              default:
@@ -445,6 +444,7 @@ export class IdeaController {
             const id = req.params.id
             const { writerId, categoryId, title, content } = req.body.idea
             const rawTags = req.body.tags   // 수정 여부와 관계 없는 모든 태그
+            console.log(JSON.stringify(rawTags))
 
             // 유효성 검사
             if (!id || !validator.isNumeric(String(id))) {
@@ -475,14 +475,13 @@ export class IdeaController {
             )
             await IdeaModel.update(idea)
 
-            if (Array.isArray(rawTags)) {
+            if (Array.isArray(rawTags) && rawTags.length > 0) {
                 const tags = Array.from(new Set(
                     rawTags
-                    .map(tag => typeof tag === 'string' ? validator.escape(tag.trim()) : '')
-                    .filter(tag => tag)
+                        .map(tag => typeof tag?.name === 'string' ? validator.escape(tag.name.trim()) : '')
+                        .filter(tag => tag)
                 ))
 
-                // 기존 Idea Tag 연결 전부 삭제
                 await IdeaTagModel.deleteByIdeaId(id)
 
                 for (const name of tags) {
@@ -490,7 +489,7 @@ export class IdeaController {
                     let tagId
 
                     // 이미 존재하는 태그라면 해당 태그 ID 이용하고 존재하지 않는다면 생성
-                    if (tagRecord && tagRecord.id) {
+                    if (tagRecord) {
                         tagId = tagRecord.id
                     } else {
                         const newTag = new TagModel(null, name)
@@ -506,7 +505,7 @@ export class IdeaController {
 
             res.status(200).json({ message: "성공적으로 아이디어가 수정되었습니다." }) 
         } catch (error) {
-            console.error(error);
+            console.error(error)
             return res.status(500).json({ message: "아이디어 수정 중 서버 에러가 발생했습니다." })
         }
     }
@@ -551,7 +550,7 @@ export class IdeaController {
                 return
             }
 
-            const result = await IdeaModel.updateViewCount(id)
+            const result = await IdeaModel.addViewCount(id)
             if (result.affectedRows == 1) {
                 res.status(200).json({ message: "성공적으로 조회수가 추가되었습니다." }) 
             } else {
@@ -569,7 +568,7 @@ export class IdeaController {
      * @openapi
      *  /api/ideas/{id}/scraps:
      *      patch:
-     *          summary: 아이디어 스크랩수 1 추가
+     *          summary: 아이디어 스크랩수 1 추가/감소
      *          tags: [아이디어]
      *          security:
      *              - bearerAuth: []
@@ -581,6 +580,18 @@ export class IdeaController {
      *                schema:
      *                    type: number
      *                    example: 1
+     *          requestBody:
+     *              required: true
+     *              content:
+     *                  application/json:
+     *                      schema:
+     *                          type: object
+     *                          required:
+     *                              - action
+     *                          properties:
+     *                              action:
+     *                                  type: string
+     *                                  example: add
      *          responses:
      *              '200':
      *                  $ref: "#/components/responses/Updated"
@@ -596,6 +607,7 @@ export class IdeaController {
     static async updateScrapCount(req, res) {
         try {
             const id = req.params.id
+            const action = req.body.action
 
             // 유효성 검사
             if (!id || !validator.isNumeric(String(id))) {
@@ -603,12 +615,25 @@ export class IdeaController {
                 return
             }
 
-            const result = await IdeaModel.updateScrapCount(id)
-            if (result.affectedRows == 1) {
-                res.status(200).json({ message: "성공적으로 스크랩수가 추가되었습니다." }) 
+            if (action == "add") {
+                const result = await IdeaModel.addScrapCount(id)
+                if (result.affectedRows == 1) {
+                    res.status(200).json({ message: "성공적으로 스크랩수가 추가되었습니다." }) 
+                } else {
+                    res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                }
+            } else if (action == "sub") {
+                const result = await IdeaModel.subScrapCount(id)
+                if (result.affectedRows == 1) {
+                    res.status(200).json({ message: "성공적으로 스크랩수가 감소되었습니다." }) 
+                } else {
+                    res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                }
             } else {
-                res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                res.status(400).json({ message: "올바른 Action을 입력하세요. (add 또는 sub)" })
+                return
             }
+            
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "아이디어 스크랩수 수정 중 서버 에러가 발생했습니다." })
@@ -621,7 +646,7 @@ export class IdeaController {
      * @openapi
      *  /api/ideas/{id}/comments:
      *      patch:
-     *          summary: 아이디어 댓글수 1 추가
+     *          summary: 아이디어 댓글수 1 추가/감소
      *          tags: [아이디어]
      *          security:
      *              - bearerAuth: []
@@ -633,6 +658,18 @@ export class IdeaController {
      *                schema:
      *                    type: number
      *                    example: 1
+     *          requestBody:
+     *              required: true
+     *              content:
+     *                  application/json:
+     *                      schema:
+     *                          type: object
+     *                          required:
+     *                              - action
+     *                          properties:
+     *                              action:
+     *                                  type: string
+     *                                  example: add
      *          responses:
      *              '200':
      *                  $ref: "#/components/responses/Updated"
@@ -648,6 +685,7 @@ export class IdeaController {
     static async updateCommentCount(req, res) {
         try {
             const id = req.params.id
+            const action = req.body.action
 
             // 유효성 검사
             if (!id || !validator.isNumeric(String(id))) {
@@ -655,12 +693,25 @@ export class IdeaController {
                 return
             }
 
-            const result = await IdeaModel.updateCommentCount(id)
-            if (result.affectedRows == 1) {
-                res.status(200).json({ message: "성공적으로 댓글수가 추가되었습니다." }) 
+            if (action == "add") {
+                const result = await IdeaModel.addCommentCount(id)
+                if (result.affectedRows == 1) {
+                    res.status(200).json({ message: "성공적으로 댓글수가 추가되었습니다." }) 
+                } else {
+                    res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                }
+            } else if (action == "sub") {
+                const result = await IdeaModel.subCommentCount(id)
+                if (result.affectedRows == 1) {
+                    res.status(200).json({ message: "성공적으로 댓글수가 감소되었습니다." }) 
+                } else {
+                    res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                }
             } else {
-                res.status(404).json({ message: "수정 실패: 아이디어를 찾을 수 없습니다." })
+                res.status(400).json({ message: "올바른 Action을 입력하세요. (add 또는 sub)" })
+                return
             }
+
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "아이디어 댓글수 수정 중 서버 에러가 발생했습니다." })
@@ -691,7 +742,7 @@ export class IdeaController {
      *              '400':
      *                  $ref: "#/components/responses/Error"
      *              '403':
-     *                  $ref: "#/components/responses/NotAuthorised"
+     *                  $ref: "#/components/responses/Forbidden"
      *              '404':
      *                  $ref: "#/components/responses/NotFound"
      *              '500':

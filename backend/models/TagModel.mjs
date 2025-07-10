@@ -27,7 +27,7 @@ export class TagModel extends DatabaseModel {
         return this.query(" SELECT * FROM tags WHERE name = ?", [name])
             .then(result => result.length > 0
                     ? this.tableToModel(result[0].tags)
-                    : Promise.reject("not found")
+                    : null
                 )
     }
 }

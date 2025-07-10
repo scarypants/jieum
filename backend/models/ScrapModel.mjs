@@ -10,9 +10,11 @@ export class ScrapModel extends DatabaseModel {
     }
 
     static tableToModel(row) {
-        row["scrap_id"],
-        row["user_id"],
-        row["idea_id"]
+        return new ScrapModel(
+            row["scrap_id"],
+            row["user_id"],
+            row["idea_id"]
+        )
     }
 
     static create(scrap) {

@@ -9,7 +9,6 @@ export class CategoryController {
     static {
         this.routes.get("/", this.getCategories)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.createCategory)
-        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.updateCategory)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.deleteCategory)
     }
 
@@ -98,75 +97,6 @@ export class CategoryController {
         } catch (error) {
             console.error(error)
             res.status(500).json({ message: "카테고리 등록 중 서버 에러가 발생했습니다." })
-        }
-    }
-
-    /**
-     * 
-     * @type {express.RequestHandler}
-     * @openapi
-     *  /api/categories/{id}:
-     *      patch:
-     *          summary: 특정 카테고리 수정
-     *          tags: [카테고리]
-     *          security:
-     *              - bearerAuth: []
-     *          parameters:
-     *              - name: id
-     *                in: path
-     *                description: 카테고리 ID
-     *                required: true
-     *                schema:
-     *                    type: number
-     *                    example: 1
-     *          requestBody:
-     *              required: true
-     *              content:
-     *                  application/json:
-     *                      schema:
-     *                          $ref: "#/components/schemas/CategoryName"
-     *          responses:
-     *              '200':
-     *                  $ref: "#/components/responses/Updated"
-     *              '400':
-     *                  $ref: "#/components/responses/Error"
-     *              '404':
-     *                  $ref: "#/components/responses/NotFound"
-     *              '500':
-     *                  $ref: "#/components/responses/Error"
-     *              default:
-     *                  $ref: "#/components/responses/Error"
-     */
-    static async updateCategory(req, res) {
-        try {
-            const id = req.params.id
-            const name = validator.escape(req.body.name)
-
-            // 유효성 검사
-            if (!id || !validator.isNumeric(String(id))) {
-                res.status(400).json({ message: "올바른 ID를 입력하세요." })
-                return
-            }
-            if (!name) {
-                res.status(400).json({ message: "카테고리 이름을 입력하세요." })
-                return
-            }
-
-            const category = new CategoryModel(
-                id,
-                name,
-                0
-            )
-
-            const result = await CategoryModel.update(category)
-            if (result.affectedRows == 1) {
-                res.status(200).json({ message: "성공적으로 카테고리가 수정되었습니다." }) 
-            } else {
-                res.status(404).json({ message: "수정 실패: 카테고리를 찾을 수 없습니다." })
-            }
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({ message: "카테고리 수정 중 서버 에러가 발생했습니다." })
         }
     }
 

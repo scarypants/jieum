@@ -136,7 +136,7 @@ export class ScrapController {
      *              '200':
      *                  $ref: "#/components/responses/Deleted"
      *              '403':
-     *                  $ref: "#/components/responses/NotAuthorised"
+     *                  $ref: "#/components/responses/Forbidden"
      *              '404':
      *                  $ref: "#/components/responses/NotFound"
      *              '500':
