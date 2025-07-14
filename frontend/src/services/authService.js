@@ -1,4 +1,4 @@
-import axios from "axios";
+import { fetchAPI } from "./axios/appClient"
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -11,7 +11,7 @@ import errorHandler from "./utils/errorHandler";
  */
 export async function authenticate(loginId, password) {
     try {
-        const response = await axios.post('http://localhost:8080/api/auth', {
+        const response = await fetchAPI.post('/auth', {
             loginId,
             password
         })

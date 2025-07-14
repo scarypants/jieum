@@ -1,5 +1,4 @@
-import axios from "axios";
-import authAxios from "./axios/authAxios";
+import { fetchAPI, authFetchAPI } from "./axios/appClient";
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -10,7 +9,7 @@ import errorHandler from "./utils/errorHandler";
  */
 export async function getAllUsers() {
     try {
-        const response = await authAxios.get('http://localhost:8080/api/users')
+        const response = await authFetchAPI.get('http://localhost:8080/api/users')
         return {
             error: null,
             users: response.data
@@ -31,7 +30,7 @@ export async function getAllUsers() {
  */
 export async function createUser(nickname, loginId, password) {
     try {
-        const response = await axios.post('http://localhost:8080/api/users', {
+        const response = await fetchAPI.post('http://localhost:8080/api/users', {
             nickname,
             loginId,
             password
@@ -55,7 +54,7 @@ export async function createUser(nickname, loginId, password) {
  */
 export async function getUser(id) {
     try {
-        const response = await authAxios.get(`http://localhost:8080/api/users/${id}`)
+        const response = await authFetchAPI.get(`http://localhost:8080/api/users/${id}`)
         return {
             error: null,
             user: response.data
@@ -76,7 +75,7 @@ export async function getUser(id) {
  */
 export async function updateUser(nickname, loginId, password) {
     try {
-        const response = await authAxios.patch('http://localhost:8080/api/users', {
+        const response = await authFetchAPI.patch('http://localhost:8080/api/users', {
             nickname,
             loginId,
             password
@@ -99,7 +98,7 @@ export async function updateUser(nickname, loginId, password) {
  */
 export async function deleteUser(id) {
     try {
-        const response = await authAxios.delete(`http://localhost:8080/api/users/${id}`)
+        const response = await authFetchAPI.delete(`http://localhost:8080/api/users/${id}`)
         return {
             error: null,
             message: response.data.message
@@ -117,7 +116,7 @@ export async function deleteUser(id) {
  */
 export async function getMyUserDetails() {
     try {
-        const response = await authAxios.get('http://localhost:8080/api/users/me')
+        const response = await authFetchAPI.get('http://localhost:8080/api/users/me')
         return {
             error: null,
             user: response.data
@@ -137,7 +136,7 @@ export async function getMyUserDetails() {
  */
 export async function updateUser(id, role) {
     try {
-        const response = await authAxios.patch(`http://localhost:8080/api/users/${id}/role`, {
+        const response = await authFetchAPI.patch(`http://localhost:8080/api/users/${id}/role`, {
             role
         })
         return {

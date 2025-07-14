@@ -1,5 +1,4 @@
-import axios from "axios";
-import authAxios from "./axios/authAxios";
+import { fetchAPI, authFetchAPI } from "./axios/appClient";
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -10,7 +9,7 @@ import errorHandler from "./utils/errorHandler";
  */
 export async function getAllCategories() {
     try {
-        const response = await axios.get('http://localhost:8080/api/categories')
+        const response = await fetchAPI.get('http://localhost:8080/api/categories')
         return {
             error: null,
             categories: response.data
@@ -29,7 +28,7 @@ export async function getAllCategories() {
  */
 export async function createCategory(name) {
     try {
-        const response = await authAxios.post('http://localhost:8080/api/categories', { 
+        const response = await authFetchAPI.post('http://localhost:8080/api/categories', { 
             name: name
         })
         return {
@@ -51,7 +50,7 @@ export async function createCategory(name) {
  */
 export async function deleteCategory(id) {
     try {
-        const response = await authAxios.delete(`http://localhost:8080/api/categories/${id}`)
+        const response = await authFetchAPI.delete(`http://localhost:8080/api/categories/${id}`)
         return {
             error: null,
             message: response.data.message

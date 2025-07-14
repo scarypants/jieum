@@ -1,4 +1,4 @@
-import authAxios from "./axios/authAxios";
+import { authFetchAPI } from "./axios/appClient";
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -9,7 +9,7 @@ import errorHandler from "./utils/errorHandler";
  */
 export async function getAllScraps() {
     try {
-        const response = await authAxios.get('http://localhost:8080/api/scraps')
+        const response = await authFetchAPI.get('http://localhost:8080/api/scraps')
         return {
             error: null,
             scraps: response.data
@@ -28,7 +28,7 @@ export async function getAllScraps() {
  */
 export async function createScrap(ideaId) {
     try {
-        const response = await authAxios.post('http://localhost:8080/api/scraps', {
+        const response = await authFetchAPI.post('http://localhost:8080/api/scraps', {
             ideaId
         })
         return {
@@ -50,7 +50,7 @@ export async function createScrap(ideaId) {
  */
 export async function deleteScrap(id) {
     try {
-        const response = await authAxios.delete(`http://localhost:8080/api/scraps/${id}`)
+        const response = await authFetchAPI.delete(`http://localhost:8080/api/scraps/${id}`)
         return {
             error: null,
             message: response.data.message

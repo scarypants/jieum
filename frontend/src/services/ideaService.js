@@ -1,5 +1,4 @@
-import axios from "axios";
-import authAxios from "./axios/authAxios";
+import { fetchAPI, authFetchAPI } from "./axios/appClient";
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -19,13 +18,13 @@ export async function getAllIdeas(category, search, sort) {
         ...(sort && { sort }),
         }
 
-        const response = await axios.get('http://localhost:8080/api/ideas', { params })
+        const response = await fetchAPI.get('http://localhost:8080/api/ideas', { params })
         return {
             error: null,
             ideas: response.data
         }
     } catch (error) {
-        return errorHandler(error, '아이디어 목록를 가져오는데 실패했습니다.')
+        return errorHandler(error, '아이디어 목록을 가져오는데 실패했습니다.')
     }    
 }
 
@@ -39,7 +38,7 @@ export async function getAllIdeas(category, search, sort) {
  */
 export async function createIdea(idea, tags) {
     try {
-        const response = await authAxios.post('http://localhost:8080/api/ideas', { 
+        const response = await authFetchAPI.post('http://localhost:8080/api/ideas', { 
             idea, // 아이디어 객체
             tags // 태그 배열
         })
@@ -62,7 +61,7 @@ export async function createIdea(idea, tags) {
  */
 export async function getIdea(id) {
     try {
-        const response = await axios.get(`http://localhost:8080/api/ideas/${id}`)
+        const response = await fetchAPI.get(`http://localhost:8080/api/ideas/${id}`)
         return {
             error: null,
             idea: response.data
@@ -83,7 +82,7 @@ export async function getIdea(id) {
  */
 export async function updateIdea(id, idea, tags) {
     try {
-        const response = await authAxios.patch(`http://localhost:8080/api/ideas/${id}`, {
+        const response = await authFetchAPI.patch(`http://localhost:8080/api/ideas/${id}`, {
             idea, // 아이디어 객체
             tags // 태그 배열
         })
@@ -105,7 +104,7 @@ export async function updateIdea(id, idea, tags) {
  */
 export async function deleteIdea(id) {
     try {
-        const response = await authAxios.delete(`http://localhost:8080/api/ideas/${id}`)
+        const response = await authFetchAPI.delete(`http://localhost:8080/api/ideas/${id}`)
         return {
             error: null,
             message: response.data.message
@@ -124,7 +123,7 @@ export async function deleteIdea(id) {
  */
 export async function getMyIdeas(sort) {
     try {
-        const response = await authAxios.get(`http://localhost:8080/api/ideas/me?${sort}`)
+        const response = await authFetchAPI.get(`http://localhost:8080/api/ideas/me?sort=${sort}`)
         return {
             error: null,
             ideas: response.data
@@ -143,7 +142,7 @@ export async function getMyIdeas(sort) {
  */
 export async function updateIdeaViews(id) {
     try {
-        const response = await axios.patch(`http://localhost:8080/api/ideas/${id}/views`)
+        const response = await fetchAPI.patch(`http://localhost:8080/api/ideas/${id}/views`)
         return {
             error: null,
             message: response.data.message
@@ -163,7 +162,7 @@ export async function updateIdeaViews(id) {
  */
 export async function updateIdeaScraps(id, action) {
     try {
-        const response = await authAxios.patch(`http://localhost:8080/api/ideas/${id}/scraps`, {
+        const response = await authFetchAPI.patch(`http://localhost:8080/api/ideas/${id}/scraps`, {
             action
         })
         return {
@@ -185,7 +184,7 @@ export async function updateIdeaScraps(id, action) {
  */
 export async function updateIdeaComments(id, action) {
     try {
-        const response = await authAxios.patch(`http://localhost:8080/api/ideas/${id}/comments`, {
+        const response = await authFetchAPI.patch(`http://localhost:8080/api/ideas/${id}/comments`, {
             action // add 또는 sub
         })
         return {

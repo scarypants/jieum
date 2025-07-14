@@ -1,4 +1,4 @@
-import authAxios from "./axios/authAxios";
+import { authFetchAPI } from "./axios/appClient";
 import errorHandler from "./utils/errorHandler";
 
 /**
@@ -9,7 +9,7 @@ import errorHandler from "./utils/errorHandler";
  */
 export async function getAllInquiries() {
     try {
-        const response = await authAxios.get('http://localhost:8080/api/inquiries')
+        const response = await authFetchAPI.get('http://localhost:8080/api/inquiries')
         return {
             error: null,
             inquiries: response.data
@@ -27,7 +27,7 @@ export async function getAllInquiries() {
  */
 export async function createInquiry() {
     try {
-        const response = await authAxios.post('http://localhost:8080/api/inquiries')
+        const response = await authFetchAPI.post('http://localhost:8080/api/inquiries')
         return {
             error: null,
             id: response.data.id,
@@ -48,7 +48,7 @@ export async function createInquiry() {
  */
 export async function updateInquiryStatus(id, status) {
     try {
-        const response = await authAxios.patch(`http://localhost:8080/api/inquiries/${id}`, {
+        const response = await authFetchAPI.patch(`http://localhost:8080/api/inquiries/${id}`, {
             status
         })
         return {
@@ -69,7 +69,7 @@ export async function updateInquiryStatus(id, status) {
  */
 export async function deleteInquiry(id) {
     try {
-        const response = await authAxios.delete(`http://localhost:8080/api/inquiries/${id}`)
+        const response = await authFetchAPI.delete(`http://localhost:8080/api/inquiries/${id}`)
         return {
             error: null,
             message: response.data.message
