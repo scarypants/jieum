@@ -49,6 +49,14 @@ export class IdeaModel extends DatabaseModel {
                 )
     }
 
+    static getWriterIdById(id) {
+        return this.query("SELECT ideas.writer_id FROM ideas WHERE idea_id =?", [id])
+            .then(result => result.length > 0
+                    ? result.map(row => this.tableToModel(row))
+                    : Promise.reject("not found")
+                )
+    }
+
     static update(idea) {
         return this.query(`
                 UPDATE ideas

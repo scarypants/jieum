@@ -132,14 +132,10 @@ components:
     IdeaPatchSummary:
       type: object
       required:
-        - writerId
         - categoryId
         - title
         - content
       properties:
-        writerId:
-          type: number
-          example: 1
         categoryId:
           type: number
           example: 1

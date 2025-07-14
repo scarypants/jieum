@@ -3,7 +3,7 @@ import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
 import SignUpView from '../views/SignUpView.vue';
 import MyPageView from '../views/MyPageView.vue'; // MyPageView 컴포넌트 임포트 
-import store from '../store'; //  Vuex 스토어 임포트(라우터 가드에서 사용)
+import store from '../store/auth.js'; //  Vuex 스토어 임포트(라우터 가드에서 사용)
 
 const routes = [
   {

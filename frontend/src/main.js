@@ -1,8 +1,8 @@
 // src/main.js
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';
-import store from './store';
+import router from './router/routes';
+import store from './store/auth.js';
 
 // Bootstrap CSS 및 JS 임포트 (경로 확인)
 import 'bootstrap/dist/css/bootstrap.min.css';

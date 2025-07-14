@@ -442,7 +442,7 @@ export class IdeaController {
     static async updateIdea(req, res) {
         try {
             const id = req.params.id
-            const { writerId, categoryId, title, content } = req.body.idea
+            const { categoryId, title, content } = req.body.idea
             const rawTags = req.body.tags   // 수정 여부와 관계 없는 모든 태그
             console.log(JSON.stringify(rawTags))
 
@@ -461,6 +461,7 @@ export class IdeaController {
             }
 
             // 아이디어 작성자만 수정 가능
+            const writerId = await IdeaModel.getWriterIdById(id)
             if (req.authenticatedUser.id != writerId) {
                 res.status(403).json({ message: "접근 거부: 권한이 없습니다." })
                 return

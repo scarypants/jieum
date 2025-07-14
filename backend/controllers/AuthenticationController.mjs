@@ -111,7 +111,7 @@ export class AuthenticationController {
 
             if (await bcrypt.compare(password, user.password)) {
                 const token = jwt.sign(
-                    { id: user.id, role: user.role }, 
+                    { id: user.id, role: user.role, nickname: user.nickname }, 
                     process.env.JWT_SECRET, 
                     { expiresIn: "1h" }
                 )
