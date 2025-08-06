@@ -1,0 +1,13 @@
+/* src/assets/main.css */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5; /* 전체 배경색 */
+  color: #333;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
