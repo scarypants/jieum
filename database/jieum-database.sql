@@ -29,7 +29,7 @@ CREATE TABLE `categories` (
   PRIMARY KEY (`category_id`),
   UNIQUE KEY `category_id_UNIQUE` (`category_id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +38,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'ITT',1),(2,'IT',0),(3,'Design',1),(4,'마케팅',1),(5,'디자인',0);
+INSERT INTO `categories` VALUES (1,'ITT',1),(2,'IT',0),(3,'Design',1),(4,'마케팅',1),(5,'디자인',0),(6,'미소',0);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -60,7 +60,7 @@ CREATE TABLE `comments` (
   KEY `idea_id_idx` (`idea_id`),
   CONSTRAINT `comment_idea_id` FOREIGN KEY (`idea_id`) REFERENCES `ideas` (`idea_id`),
   CONSTRAINT `comment_writer_id` FOREIGN KEY (`writer_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,6 +69,7 @@ CREATE TABLE `comments` (
 
 LOCK TABLES `comments` WRITE;
 /*!40000 ALTER TABLE `comments` DISABLE KEYS */;
+INSERT INTO `comments` VALUES (2,4,1,'dd');
 /*!40000 ALTER TABLE `comments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -97,7 +98,7 @@ CREATE TABLE `ideas` (
   KEY `category_id_idx` (`category_id`),
   CONSTRAINT `category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`),
   CONSTRAINT `idea_writer_id` FOREIGN KEY (`writer_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -106,7 +107,7 @@ CREATE TABLE `ideas` (
 
 LOCK TABLES `ideas` WRITE;
 /*!40000 ALTER TABLE `ideas` DISABLE KEYS */;
-INSERT INTO `ideas` VALUES (1,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-02','2025-07-02 06:37:51',0,0,1,0),(2,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:11:14',0,0,0,1),(3,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:31:51',0,0,0,1),(4,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:39:12',0,0,0,1),(5,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:42:05',0,0,0,1),(6,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:42:39',0,0,0,1),(7,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:44:06',0,0,0,0),(8,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:48:17',1,0,0,0),(9,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-10','2025-07-10 10:16:56',0,0,0,1),(10,4,5,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-10','2025-07-10 10:46:40',0,0,0,0);
+INSERT INTO `ideas` VALUES (1,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-02','2025-07-02 06:37:51',0,0,1,1),(2,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:11:14',0,0,0,1),(3,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:31:51',0,0,0,1),(4,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:39:12',0,0,0,1),(5,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:42:05',0,0,0,1),(6,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:42:39',0,0,0,1),(7,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:44:06',0,0,0,1),(8,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-07','2025-07-07 03:48:17',1,0,0,1),(9,4,2,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-10','2025-07-10 10:16:56',0,0,0,1),(10,4,5,'아이디어 공유 플랫폼','서로의 아이디어를 공유할 수 있는 플랫폼을 만드는 중','2025-07-10','2025-07-10 10:46:40',0,0,0,0),(11,4,5,'dd','dddd','2025-08-06','2025-08-06 08:21:17',0,0,0,1);
 /*!40000 ALTER TABLE `ideas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -127,7 +128,7 @@ CREATE TABLE `ideas_tags` (
   KEY `tag_id_idx` (`tag_id`),
   CONSTRAINT `idea_id` FOREIGN KEY (`idea_id`) REFERENCES `ideas` (`idea_id`),
   CONSTRAINT `tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,7 +137,7 @@ CREATE TABLE `ideas_tags` (
 
 LOCK TABLES `ideas_tags` WRITE;
 /*!40000 ALTER TABLE `ideas_tags` DISABLE KEYS */;
-INSERT INTO `ideas_tags` VALUES (2,7,1),(3,7,2),(4,8,1),(5,8,2),(10,10,1);
+INSERT INTO `ideas_tags` VALUES (10,10,1);
 /*!40000 ALTER TABLE `ideas_tags` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -210,7 +211,7 @@ CREATE TABLE `tags` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`tag_id`),
   UNIQUE KEY `tag_id_UNIQUE` (`tag_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -219,7 +220,7 @@ CREATE TABLE `tags` (
 
 LOCK TABLES `tags` WRITE;
 /*!40000 ALTER TABLE `tags` DISABLE KEYS */;
-INSERT INTO `tags` VALUES (1,'컴퓨터'),(2,'아이디어'),(3,'힘들어'),(4,'디자인'),(5,'그림');
+INSERT INTO `tags` VALUES (1,'컴퓨터'),(2,'아이디어'),(3,'힘들어'),(4,'디자인'),(5,'그림'),(6,'dd'),(7,'ff');
 /*!40000 ALTER TABLE `tags` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -243,7 +244,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `user_id_UNIQUE` (`user_id`),
   UNIQUE KEY `unique_nickname_active` (`nickname_active`),
   UNIQUE KEY `unique_login_id_active` (`login_id_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +253,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` (`user_id`, `role`, `nickname`, `login_id`, `password`, `deleted`) VALUES (3,'member','테스트','test','$2b$10$HOrAd8mAk1YymzLvprd8De3UV0PmS/gix9ZVV7IvPQKz/EYvZgT.K',1),(4,'admin','미소','miso','$2b$10$hH6HeR/lEsyov8qX38AqYe7i4pH3GGw6tYqp.WkfviXcA4DbPYI8u',0),(5,'member','화영','hwayoung','adminhwayoung',0),(9,'member','테스트','test','$2b$10$CBZPckieq3AEY029fFk4D.qVi39T26PJm1usHz879dYGkFDtBgxxy',1);
+INSERT INTO `users` (`user_id`, `role`, `nickname`, `login_id`, `password`, `deleted`) VALUES (3,'member','테스트','test','$2b$10$HOrAd8mAk1YymzLvprd8De3UV0PmS/gix9ZVV7IvPQKz/EYvZgT.K',1),(4,'admin','미소','miso','$2b$10$hH6HeR/lEsyov8qX38AqYe7i4pH3GGw6tYqp.WkfviXcA4DbPYI8u',0),(5,'member','화영','hwayoung','adminhwayoung',0),(9,'member','테스트','test','$2b$10$CBZPckieq3AEY029fFk4D.qVi39T26PJm1usHz879dYGkFDtBgxxy',1),(10,'member','test','testd','$2b$10$lroYx2KaXaWO2EOHR02IV.WzulScEYCQNdr5Rw8aV3G0NKfuQOqee',0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -265,4 +266,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-10 21:12:16
+-- Dump completed on 2025-08-20 15:02:31
