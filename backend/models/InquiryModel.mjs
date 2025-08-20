@@ -2,11 +2,10 @@ import { DatabaseModel } from "./DatabaseModel.mjs";
 
 export class InquiryModel extends DatabaseModel {
 
-    constructor(id, userId, status, deleted) {
+    constructor(id, userId, deleted) {
         super()
         this.id = id
         this.userId = userId
-        this.status = status
         this.deleted = deleted
     }
 
@@ -14,7 +13,6 @@ export class InquiryModel extends DatabaseModel {
         return new InquiryModel(
             row["inquiry_id"],
             row["user_id"],
-            row["status"],
             row["deleted"]
         )
     }
@@ -25,14 +23,6 @@ export class InquiryModel extends DatabaseModel {
                 (user_id)
                 VALUES (?)
             `, [userId])
-    }
-
-    static update(id, status) {
-        return this.query(`
-                UPDATE inquiries
-                SET status = ?
-                WHERE inquiry_id = ?
-            `, [status, id])
     }
 
     static delete(id) {

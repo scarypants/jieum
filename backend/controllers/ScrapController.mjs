@@ -52,8 +52,15 @@ export class ScrapController {
             const scraps = await ScrapIdeaModel.getByUserId(req.authenticatedUser.id)
             res.status(200).json(scraps)
         } catch (error) {
-            console.error(error)
-            res.status(500).json({ message: "데이터베이스에서 스크랩 데이터를 가져오는데 실패했습니다." })
+            switch (error) {
+                case "not found":
+                    res.status(400).json({ message: "결과 데이터가 없습니다." })
+                    break;
+                default:
+                    console.error(error)
+                    res.status(500).json({ message: "데이터베이스에서 스크랩 데이터를 가져오는데 실패했습니다." })
+                    break;
+            }
         }
     }
 

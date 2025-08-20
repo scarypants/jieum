@@ -110,12 +110,13 @@ export class AuthenticationController {
             console.log(JSON.stringify(user))
 
             if (await bcrypt.compare(password, user.password)) {
+                const authenticatedUser = { id: user.id, role: user.role, nickname: user.nickname}
                 const token = jwt.sign(
-                    { id: user.id, role: user.role }, 
+                    { id: user.id, role: user.role, nickname: user.nickname }, 
                     process.env.JWT_SECRET, 
                     { expiresIn: "1h" }
                 )
-                res.status(200).json({ token })
+                res.status(200).json({ authenticatedUser, token })
             } else {
                 res.status(400).json({ message: "아이디 또는 비밀번호가 잘못되었습니다." })
             }

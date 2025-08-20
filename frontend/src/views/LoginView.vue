@@ -50,8 +50,8 @@ export default {
 
         // 로그인 성공 시 Vuex 액션 호출 및 리다이렉트
         // 백엔드에서 jwt 토큰을 줌
-        const { token } = response.data; 
-        this.login({ token }); // Vuex에 로그인 상태 저장
+        const { authenticatedUser, token } = response.data; 
+        this.login({ user: authenticatedUser, token }); // Vuex에 로그인 상태 저장
 
         alert('로그인 성공!');
         this.$router.push('/');

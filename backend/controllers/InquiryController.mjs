@@ -10,7 +10,6 @@ export class InquiryController {
     static {
         this.routes.get("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.getInquires)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin", "member"]), this.createInquiry)
-        this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.updateInquiryStatus)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.deleteInquiry)
     }
 
@@ -37,9 +36,9 @@ export class InquiryController {
      *                                      - inquiry
      *                                      - user
      *                                  properties:
-     *                                      scrap:
+     *                                      inquiry:
      *                                          $ref: "#/components/schemas/Inquiry"
-     *                                      idea:
+     *                                      user:
      *                                          $ref: "#/components/schemas/User"
      *              '400':
      *                  $ref: "#/components/responses/Error"
@@ -88,74 +87,6 @@ export class InquiryController {
         } catch (error) {
             console.log(error)
             res.status(500).json({ message: "문의사항 등록 중 서버 에러가 발생했습니다." })
-        }
-    }
-
-    /**
-     * 
-     * @type {express.RequestHandler}
-     * @openapi
-     *  /api/inquiries/{id}:
-     *      patch:
-     *          summary: 문의사항 상태 수정
-     *          tags: [문의사항]
-     *          security:
-     *              - bearerAuth: []
-     *          parameters:
-     *              - name: id
-     *                in: path
-     *                description: 문의사항 ID
-     *                required: true
-     *                schema:
-     *                    type: number
-     *                    example: 1
-     *          requestBody:
-     *              required: true
-     *              content:
-     *                  application/json:
-     *                      schema:
-     *                          type: object
-     *                          required:
-     *                              - status
-     *                          properties:
-     *                              status:
-     *                                  type: string
-     *                                  example: completed
-     *                                  
-     *          responses:
-     *              '200':
-     *                  $ref: "#/components/responses/Updated"
-     *              '400':
-     *                  $ref: "#/components/responses/Error"
-     *              '500':
-     *                  $ref: "#/components/responses/Error"
-     *              default:
-     *                  $ref: "#/components/responses/Error"
-     */
-    static async updateInquiryStatus(req, res) {
-        try {
-            const id = req.params.id
-            const status = req.body.status
-
-            // 유효성 검사
-            if (!id || !validator.isNumeric(String(id))) {
-                res.status(400).json({ message: "올바른 ID를 입력하세요." })
-                return
-            }
-            if (!status || !["processing", "completed".includes(status)]) {
-                res.status(400).json({ message: "올바른 상태를 입력하세요." })
-                return
-            }
-
-            const result = await InquiryModel.update(id, status)
-            if (result.affectedRows == 1) {
-                res.status(200).json({ message: "성공적으로 문의사항 상태가 수정되었습니다." }) 
-            } else {
-                res.status(404).json({ message: "수정 실패: 문의사항을 찾을 수 없습니다." })
-            }
-        } catch (error) {
-            console.error(error)
-            return res.status(500).json({ message: "문의사항 상태 수정 중 서버 에러가 발생했습니다." })
         }
     }
 

@@ -220,13 +220,6 @@ export class IdeaController {
      *          tags: [아이디어]
      *          security:
      *              - bearerAuth: []
-     *          parameters:
-     *              - name: sort
-     *                in: query
-     *                description: 정렬 기준 (조회수순, 스크랩순, 댓글많은순, 최신순)
-     *                schema:
-     *                    type: string
-     *                    example: latest
      *          responses:
      *              '200':
      *                  description: 내 아이디어 목록
@@ -235,36 +228,7 @@ export class IdeaController {
      *                          schema:
      *                              type: array
      *                              items:
-     *                                  type: object
-     *                                  required:
-     *                                      - idea
-     *                                      - writer
-     *                                      - category
-     *                                  properties:
-     *                                      idea:
-     *                                          $ref: "#/components/schemas/Idea"
-     *                                      writer:
-     *                                          $ref: "#/components/schemas/UserNickname"
-     *                                      category:
-     *                                          $ref: "#/components/schemas/CategoryName"
-     *                                      tags:
-     *                                          type: array
-     *                                          items:
-     *                                              type: object
-     *                                              properties:
-     *                                                  ideaTag:
-     *                                                      $ref: "#/components/schemas/IdeaTag"
-     *                                                  tag:
-     *                                                      $ref: "#/components/schemas/Tag"
-     *                                      comments:
-     *                                          type: array
-     *                                          items:
-     *                                              type: object
-     *                                              properties:
-     *                                                  comment:
-     *                                                      $ref: "#/components/schemas/Comment"
-     *                                                  commentWriter:
-     *                                                      $ref: "#/components/schemas/UserNickname"
+     *                                  $ref: "#/components/schemas/Idea"
      *              '400':
      *                  $ref: "#/components/responses/Error"
      *              '500':
@@ -274,15 +238,7 @@ export class IdeaController {
      */
     static async getMyIdeas(req, res) {
         try {
-            const sort = req.query.sort ?? "latest"
-
-            // 유효성 검사
-            if (!["views", "scraps", "comments", "latest"].includes(sort)) {
-                res.status(400).json({ message: "올바른 정렬 기준을 선택해주세요." })
-                return
-            }
-
-            const ideas = await IdeaDetailsModel.getByWriterId(req.authenticatedUser.id, sort)
+            const ideas = await IdeaModel.getByWriterId(req.authenticatedUser.id)
             res.status(200).json(ideas)
         } catch (error) {
             switch (error) {

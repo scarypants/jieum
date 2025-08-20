@@ -76,6 +76,7 @@ export default {
       id: this.$route.params.id,
       idea: null,
       isScrapped: false,
+      scrap: null,
       newComment: ''
     };
   },
@@ -88,7 +89,43 @@ export default {
           this.error = error.message ?? '아이디어를 가져오는데 실패했습니다.'
       } 
     },
-    toggleScrap() {
+    async fetchScraps() {
+      try {
+        const response = await authFetchAPI.get('/scraps')
+        const scraps = response.data
+        const found = scraps.find(scrap => scrap.scrap.ideaId == this.id)
+        if (found) {
+          this.isScrapped = true
+          this.scrap = found
+        }
+      } catch (error) {
+        const status = error?.response?.status
+        if (status === 400 || status === 404) {
+          this.isScrapped = false
+          this.scrap = null
+        } else {
+          this.error = '스크랩 목록를 가져오는데 실패했습니다.'
+        }
+      }    
+    },
+    async toggleScrap() {
+      if (this.isScrapped) {
+        try {
+          await authFetchAPI.delete(`/scraps/${this.scrap.scrap.id}`)
+          alert("삭제되었습니다.")
+        } catch (error) {
+          this.error = error.message ?? '스크랩을 삭제할 수 없습니다.'
+        }  
+      } else {
+        try {
+          const ideaId = Number(this.id)
+          await authFetchAPI.post('/scraps', {
+            ideaId
+          })
+        } catch (error) {
+          this.error = error.message ?? '스크랩을 생성할 수 없습니다.'
+        }
+      }
       this.isScrapped = !this.isScrapped;
     },
     formatDate(dateStr) {
@@ -126,6 +163,7 @@ export default {
   },
   async created() {
     await this.fetchIdea();
+    await this.fetchScraps();
   }
 };
 </script>

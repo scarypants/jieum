@@ -49,6 +49,19 @@ export class IdeaModel extends DatabaseModel {
                 )
     }
 
+    static getByWriterId(writerId) {
+        return this.query(`
+            SELECT * FROM ideas 
+            WHERE writer_id = ? 
+            AND deleted = 0
+            ORDER BY created_at DESC
+            `, [writerId])
+            .then(result => result.length > 0
+                    ? result.map(row => this.tableToModel(row.ideas))
+                    : Promise.reject("not found")
+                )
+    }
+
     static update(idea) {
         return this.query(`
                 UPDATE ideas

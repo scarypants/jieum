@@ -1,6 +1,7 @@
 <template>
   <div v-if="!me">loading...</div>
-  <div v-if="me" class="mypage-container">
+
+  <div v-else class="mypage-container">
     <!-- 프로필 박스 -->
     <div class="profile-box">
       <img src="@/assets/user.png" alt="프로필 이미지" class="profile-image" />
@@ -16,114 +17,161 @@
         </div>
         <div class="info-pill">
           <span class="label-pill">비밀번호</span>
-          <input disabled type="password" class="info-text" value="{{ me.password }}" >
+          <!-- input 기본 박스 제거 + Vue 바인딩 -->
+          <input disabled type="password" class="info-text no-box" value="**********" />
         </div>
 
         <!-- 프로필 수정 & 회원 탈퇴 버튼 (우측 하단) -->
         <div class="profile-buttons">
           <button class="edit-button" @click="goToEdit">프로필 수정</button>
-          <button class="delete-button">회원 탈퇴</button>
+          <button class="delete-button" @click="confirmDeleteAccount">회원 탈퇴</button>
         </div>
       </div>
     </div>
 
-    <!-- 스크랩 & 내 아이디어 탭 -->
+    <!-- 탭: 내 아이디어 / 스크랩 아이디어 / 관리자 페이지(항상 표기하되 권한 체크는 클릭 시) -->
     <div class="tab-select">
       |
-      <span :class="{ active: selectedTab === 'mine' }" @click="selectedTab = 'mine'">내 아이디어</span>
+      <span :class="{ active: selectedTab === 'mine' }" @click="selectTab('mine')">내 아이디어</span>
       |
-      <span :class="{ active: selectedTab === 'scrap' }" @click="selectedTab = 'scrap'">스크랩 아이디어</span>
+      <span :class="{ active: selectedTab === 'scrap' }" @click="selectTab('scrap')">스크랩 아이디어</span>
       |
-      <span v-if="this.me.role == 'admin'" :class="{ active: selectedTab === 'scrap' }" @click="selectedTab = 'scrap'">관리자 페이지</span>
+      <span class="admin-link" @click="goAdmin">관리자 페이지</span>
+      |
     </div>
 
-    <!-- 아이디어 목록 -->
-    <div class="idea-grid">
-      <div
-        v-for="idea in filteredIdeas"
-        :key="idea.idea.id"
-        class="idea-card"
-        @click="goToIdea(idea.idea.id)"
-      >
-        <div class="idea-header">
-          <div class="idea-title with-bg">{{ idea.idea.title }}</div>
-        </div>
-        <div class="idea-content">
-          {{ idea.idea.content }}
-        </div>
-        <div class="idea-footer">
-          <div class="idea-meta">
-            <span>조회수 {{ idea.idea.viewCount }}</span>
-            <span>스크랩 {{ idea.idea.scrapCount }}</span>
-            <span>댓글 {{ idea.idea.commentCount }}</span>
-          </div>
-          <div class="idea-author">
-            <span>{{ idea.idea.date }}</span>
+    <!-- 내가 작성한 아이디어 -->
+    <section v-if="selectedTab === 'mine'">
+      <div class="idea-grid">
+        <div
+          v-for="idea in myIdeas"
+          :key="idea.id"
+          class="idea-card"
+        >
+          <div @click="goToIdea(idea.id)">
+            <div class="idea-header">
+              <div class="idea-title with-bg">{{ idea.title }}</div>
+            </div>
+            <div class="idea-content">
+              {{ idea.content }}
+            </div>
+            <div class="idea-footer">
+              <div class="idea-meta">
+                <span>조회수 {{ idea.viewCount }}</span>
+                <span>스크랩 {{ idea.scrapCount }}</span>
+                <span>댓글 {{ idea.commentCount }}</span>
+              </div>
+              <div class="idea-author">
+                <span>{{ formatDate(idea.date || idea.createdAt) }}</span>
+              </div>
+            </div>
           </div>
 
-          <!-- 내 아이디어에만 수정/삭제 버튼 노출 -->
-          <div
-            v-if="selectedTab === 'mine'"
-            class="idea-actions"
-          >
-            <button class="edit-mini">수정</button>
-            <button class="delete-mini" @click="deleteIdea(idea.idea.id)">삭제</button>
+          <!-- 내 아이디어에만 수정/삭제 버튼 -->
+          <div class="idea-actions">
+            <button class="edit-mini" @click.stop="goToIdea(idea.idea.id)">수정</button>
+            <button class="delete-mini" @click.stop="deleteIdea(idea.idea.id)">삭제</button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- 스크랩 아이디어 -->
+    <section v-else>
+      <div class="idea-grid">
+        <div
+          v-for="idea in scrapIdeas"
+          :key="idea.idea.id"
+          class="idea-card"
+          @click="goToIdea(idea.idea.id)"
+        >
+          <div class="idea-header">
+            <div class="idea-title with-bg">{{ idea.idea.title }}</div>
+          </div>
+          <div class="idea-content">
+            {{ idea.idea.content }}
+          </div>
+          <div class="idea-footer">
+            <div class="idea-meta">
+              <span>조회수 {{ idea.idea.viewCount }}</span>
+              <span>스크랩 {{ idea.idea.scrapCount }}</span>
+              <span>댓글 {{ idea.idea.commentCount }}</span>
+            </div>
+            <div class="idea-author">
+              <span>{{ formatDate(idea.idea.date || idea.idea.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 관리자 섹션 템플릿은 제거 (관리자 페이지는 별도 /admin 라우트에서 열기) -->
   </div>
 </template>
 
 <script>
 import { authFetchAPI } from '@/components/appClient';
+import { mapActions } from 'vuex';
+
 export default {
   name: 'MyPageView',
   data() {
     return {
       me: null,
-      selectedTab: 'mine',
+      selectedTab: 'mine', // 'mine' | 'scrap'
       scrapIdeas: [],
-      myIdeas: []
+      myIdeas: [],
+      error: null
     };
   },
-  computed: {
-    filteredIdeas() {
-      return this.selectedTab === 'scrap' ? this.scrapIdeas : this.myIdeas;
-    }
-  },
   methods: {
+    ...mapActions(['logout']),
+
     async fetchMe() {
       try {
-        const response = await authFetchAPI.get('/users/me')
-        this.me = response.data
+        const response = await authFetchAPI.get('/users/me');
+        this.me = response.data;
       } catch (error) {
-          this.error = error.message ?? '내 프로필 정보를 가져오는데 실패했습니다.'
-      } 
+        this.error = error?.message ?? '내 프로필 정보를 가져오는데 실패했습니다.';
+      }
     },
     async fetchScrap() {
       try {
-        const response = await authFetchAPI.get('/scraps')
-        this.scrapIdeas = response.data
+        const response = await authFetchAPI.get('/scraps');
+        this.scrapIdeas = response.data;
       } catch (error) {
-          this.error = error.message ?? '스크랩 목록를 가져오는데 실패했습니다.'
-      }    
+        const status = error?.response?.status;
+        if (status === 400 || status === 404) {
+          // 목록 없음 → 정상 케이스로 간주
+          this.scrapIdeas = [];
+        } else {
+          this.error = error?.message ?? '스크랩 목록를 가져오는데 실패했습니다.';
+        }
+      }
+      
     },
     async fetchIdeas() {
       try {
-        const response = await authFetchAPI.get('/ideas/me')
-        this.myIdeas = response.data
+        const response = await authFetchAPI.get('/ideas/me');
+        this.myIdeas = response.data;
       } catch (error) {
-          this.error = error.message ?? '내 아이디어를 가져오는데 실패했습니다.'
+        const status = error?.response?.status;
+        if (status === 400 || status === 404) {
+          // 목록 없음 → 정상 케이스로 간주
+          this.myIdeas = [];
+        } else {
+          this.error = error?.message ?? '내 아이디어를 가져오는데 실패했습니다.';
+        }
       }
     },
     async deleteIdea(id) {
       try {
-        await authFetchAPI.delete(`/ideas/${id}`)
-        this.$router.push('/mypage')
+        await authFetchAPI.delete(`/ideas/${id}`);
+        // 삭제 후 내 아이디어 목록 갱신
+        await this.fetchIdeas();
       } catch (error) {
-          this.error = error.message ?? '아이디어를 삭제할 수 없습니다.'
-      }  
+        this.error = error?.message ?? '아이디어를 삭제할 수 없습니다.';
+      }
     },
     goToEdit() {
       this.$router.push('/profile-edit');
@@ -131,10 +179,37 @@ export default {
     goToIdea(id) {
       this.$router.push(`/idea/${id}`);
     },
-    // goToIdeaEdit(id) {
-    //   this.$router.push(`/`)
-    // },
+    selectTab(tab) {
+      this.selectedTab = tab;
+    },
+    goAdmin() {
+      // 관리자만 /admin 이동, 일반 회원은 팝업만 띄우고 이동하지 않음
+      const role = this.me?.role;
+      if (role === 'admin') {
+        this.$router.push('/admin');
+      } else {
+        alert('관리자만 접근할 수 있습니다.');
+        // 이동 없음
+      }
+    },
+    async confirmDeleteAccount() {
+      if (confirm('회원을 탈퇴하시겠습니까?')) {
+        try {
+          await authFetchAPI.post('/inquiries')
+          alert('탈퇴 신청이 완료되었습니다.');
+          // Vuex logout 액션 호출
+          this.logout();
+          // 로그아웃 후 홈 페이지로 리다이렉트 (현재 경로가 홈이 아니면)
+          if (this.$route.path !== '/') {
+            this.$router.push('/');
+          }
+        } catch (error) {
+          this.error = '문의사항을 생성할 수 없습니다.'
+        }
+      }
+    },
     formatDate(date) {
+      if (!date) return '';
       const d = new Date(date);
       return d.toLocaleDateString();
     }
@@ -163,6 +238,7 @@ export default {
   align-items: center;
   border-radius: 10px;
   margin-bottom: 30px;
+  position: relative;
 }
 .profile-image {
   width: 100px;
@@ -202,6 +278,12 @@ export default {
   color: #333;
   word-break: break-word;
 }
+.no-box {
+  border: none;
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
 
 /* 프로필 수정/탈퇴 버튼 */
 .profile-buttons {
@@ -211,15 +293,15 @@ export default {
   display: flex;
   gap: 10px;
 }
-.edit-button {
+.edit-button { /* 프로필 수정 버튼 */
   padding: 6px 16px;
   border-radius: 20px;
-  border: none;
-  background-color: #E8D8F6;
   border: 2px solid #3C096C;
+  background-color: #E8D8F6;
   color: #5C1E94;
   font-weight: bold;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 .edit-button:hover {
   background-color: #dcc7f1;
@@ -227,12 +309,12 @@ export default {
 .delete-button {
   padding: 6px 16px;
   border-radius: 20px;
-  border: none;
-  background-color: #ffebeb;
   border: 2px solid red;
+  background-color: #ffebeb;
   color: red;
   font-weight: bold;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 .delete-button:hover {
   background-color: #ffdada;
@@ -245,13 +327,21 @@ export default {
   font-size: 16px;
   color: #444;
 }
-.tab-select span {
+.tab-select span,
+.tab-select .admin-link {
   cursor: pointer;
   padding: 0 10px;
+  text-decoration: none;
+  color: inherit;
 }
 .tab-select .active {
   color: #5C1E94;
   text-decoration: underline;
+}
+.tab-disabled {
+  color: #bbb;
+  padding: 0 10px;
+  cursor: not-allowed;
 }
 
 /* ── 아이디어 카드 ── */
@@ -284,11 +374,6 @@ export default {
   color: #444;
   height: 4.5em;
   overflow: hidden;
-}
-.idea-tags {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: bold;
 }
 .idea-meta {
   font-size: 12px;

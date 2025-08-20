@@ -20,7 +20,7 @@
         <!-- 비밀번호 수정 -->
         <div class="info-pill">
           <span class="label-pill">비밀번호</span>
-          <input v-model="password" type="password" class="info-input" />
+          <input placeholder="*******" v-model="password" type="password" class="info-input" />
         </div>
       </div>
     </div>

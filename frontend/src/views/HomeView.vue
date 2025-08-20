@@ -36,7 +36,7 @@
         </div>
 
         <div class="Idea-link">
-          <router-link to="/Idea" class="idea-button">아이디어작성</router-link>
+          <button class="idea-button" @click="goWriteIdea">아이디어작성</button>
         </div>
       </div>
     </div>
@@ -121,6 +121,14 @@ export default {
       return date.toLocaleDateString();
       
     },
+    goWriteIdea() {
+    const isLoggedIn = this.$store?.getters?.isLoggedIn;
+    if (!isLoggedIn) {
+      alert('로그인 후 제공하는 서비스 입니다');
+      return;
+    }
+    this.$router.push('/Idea');
+  },
     async fetchCategories() {
       try {
         const response = await fetchAPI.get('/categories')

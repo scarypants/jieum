@@ -240,7 +240,6 @@ components:
       type: object
       required:
         - userId
-        - status
       properties:
         id:
           type: number
@@ -248,9 +247,6 @@ components:
         userId:
           type: number
           example: 1
-        status:
-          type: string
-          example: processing
         deleted:
           type: number
           example: 0
