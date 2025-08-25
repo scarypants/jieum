@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!idea">loading...</div>
+  <div v-if="!(idea || scrap)">loading...</div>
   <div class="idea-read-container" v-if="error == null && idea">
     
     <!-- 노트 스타일 영역 -->
@@ -32,7 +32,7 @@
             <span class="author-label">작성자</span>
             <span class="author-nickname">{{ idea.writer.nickname }}</span>
           </div>
-          <div class="date">{{ idea.idea.date }}</div>
+          <div class="date">{{ formatDate(idea.idea.createdAt) }}</div>
         </div>
       </div>
     </div>
@@ -100,7 +100,7 @@ export default {
         }
       } catch (error) {
         const status = error?.response?.status
-        if (status === 400 || status === 404) {
+        if (status === 400 || status === 401 || status === 404) {
           this.isScrapped = false
           this.scrap = null
         } else {

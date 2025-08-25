@@ -62,15 +62,15 @@
                 <span>댓글 {{ idea.commentCount }}</span>
               </div>
               <div class="idea-author">
-                <span>{{ formatDate(idea.date || idea.createdAt) }}</span>
+                <span>{{ formatDate(idea.createdAt) }}</span>
               </div>
             </div>
           </div>
 
           <!-- 내 아이디어에만 수정/삭제 버튼 -->
           <div class="idea-actions">
-            <button class="edit-mini" @click.stop="goToIdea(idea.idea.id)">수정</button>
-            <button class="delete-mini" @click.stop="deleteIdea(idea.idea.id)">삭제</button>
+            <button class="edit-mini" @click.stop="goToIdea(idea.id)">수정</button>
+            <button class="delete-mini" @click.stop="deleteIdea(idea.id)">삭제</button>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@
               <span>댓글 {{ idea.idea.commentCount }}</span>
             </div>
             <div class="idea-author">
-              <span>{{ formatDate(idea.idea.date || idea.idea.createdAt) }}</span>
+              <span>{{ formatDate(idea.idea.createdAt) }}</span>
             </div>
           </div>
         </div>
@@ -208,11 +208,10 @@ export default {
         }
       }
     },
-    formatDate(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      return d.toLocaleDateString();
-    }
+    formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString();
+    },
   },
   async created() {
     await this.fetchMe();

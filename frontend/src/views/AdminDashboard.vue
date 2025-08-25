@@ -37,26 +37,28 @@
 
     <!-- 우측: 콘텐츠 영역 -->
     <main class="right-pane">
-      <!-- 회원 리스트 (5열, 가운데 정렬) -->
+      <!-- 회원 리스트 (6열: 닉네임/아이디/비번/역할/비고/저장) -->
       <section v-if="activeMenu === 'members'" class="panel">
-        <h2 class="sr-only">회원 리스트</h2>
+        <h2 class="sr-only">회원 관리</h2>
 
         <div class="table-wrap">
           <table class="member-table">
             <colgroup>
-              <col style="width:22%" />
-              <col style="width:22%" />
-              <col style="width:22%" />
-              <col style="width:14%" />
               <col style="width:20%" />
+              <col style="width:20%" />
+              <col style="width:16%" />
+              <col style="width:16%" />
+              <col style="width:14%" />
+              <col style="width:14%" />
             </colgroup>
             <thead>
               <tr>
                 <th>닉네임</th>
                 <th>아이디</th>
                 <th>비밀번호</th>
-                <th>역할</th>
-                <th>비고</th>
+                <th>회원 역할</th>
+                <th>회원 삭제</th>
+                <th>  </th>
               </tr>
             </thead>
             <tbody>
@@ -64,40 +66,45 @@
                 <td>{{ member.nickname }}</td>
                 <td>{{ member.loginId }}</td>
                 <td>******</td>
+
+                <!-- 역할 드롭다운(기존 분기 유지) -->
                 <td v-if="member.role == 'admin'">
-                  <!-- ✅ 역할 드롭다운 -->
-                  <select v-model="member.role" class="role-select">
-                    <option value="admin" selected>
-                      관리자
-                    </option>
-                    <option value="member">
-                      사용자
-                    </option>
+                  <select v-model="member.role" class="role-select" @change="selectedMemberRole">
+                    <option value="admin" selected>관리자</option>
+                    <option value="member">사용자</option>
                   </select>
                 </td>
-                <td v-if="member.role == 'member'">
-                  <!-- ✅ 역할 드롭다운 -->
-                  <select v-model="member.role" class="role-select">
-                    <option value="admin">
-                      관리자
-                    </option>
-                    <option value="member" selected>
-                      사용자
-                    </option>
+                <td v-else-if="member.role == 'member'">
+                  <select v-model="member.role" class="role-select" @change="selectedMemberRole">
+                    <option value="admin">관리자</option>
+                    <option value="member" selected>사용자</option>
                   </select>
                 </td>
+                <!-- 안전장치: 혹시 다른 값이면 기본 셀 -->
+                <td v-else>
+                  <select v-model="member.role" class="role-select" @change="selectedMemberRole">
+                    <option value="admin">관리자</option>
+                    <option value="member">사용자</option>
+                  </select>
+                </td>
+
+                <!-- 비고: 회원 삭제 -->
                 <td>
                   <button class="member-delete-btn" @click="deleteMember(member)">
                     회원 삭제
+                  </button>
+                </td>
+
+                <!-- ✅ 저장 열: 행별 저장 버튼 -->
+                <td>
+                  <button class="member-save-btn" @click="saveMember(member)">
+                    저장
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-
-        <!-- ✅ 저장 버튼: 하얀 우측 영역 내부(=right-pane)에 고정 -->
-        <button class="save-button" @click="saveChanges">저장</button>
       </section>
 
       <!-- 카테고리 관리 -->
@@ -147,8 +154,6 @@
             </div>
           </div>
         </div>
-
-        <button class="save-button" @click="saveChanges">저장</button>
       </section>
 
       <!-- 문의사항 확인 -->
@@ -163,14 +168,11 @@
           >
             <div class="inquiry-title">회원 탈퇴</div>
             <div class="inquiry-body">({{ inquiry.user.nickname }}) 탈퇴 문의 드립니다</div>
-            <!-- 카드 우하단 문의사항 삭제 -->
             <button class="inquiry-delete-btn" @click="deleteInquiry(inquiry)">
               문의사항 삭제
             </button>
           </div>
         </div>
-
-        <button class="save-button" @click="saveChanges">저장</button>
       </section>
     </main>
   </div>
@@ -183,12 +185,8 @@ export default {
   data() {
     return {
       activeMenu: 'members',
-      // 내부 값: 'admin' | 'user'
-      roleOptions: [
-        { value: 'admin', label: '관리자' },
-        { value: 'user',  label: '사용자' },
-      ],
       members: [],
+      currentMemberRole: null,
       categories: [],
       isAddingCategory: false,
       newCategoryName: '',
@@ -197,41 +195,50 @@ export default {
     };
   },
   methods: {
+    /* ---------- 회원 ---------- */
     async fetchUsers() {
       try {
-        const response = await authFetchAPI.get('/users')
-        this.members = response.data
+        const response = await authFetchAPI.get('/users');
+        this.members = response.data;
       } catch (error) {
-        this.error = '사용자 목록를 가져오는데 실패했습니다.'
-      }    
+        this.error = '사용자 목록를 가져오는데 실패했습니다.';
+      }
     },
-    saveChanges() {
+    // ✅ 행별 저장
+    async saveMember(member) {
       try {
-        // TODO: 실제 저장 API 연동 시, members 배열의 role 값이 곧 서버에 보낼 payload가 됨.
-        // 예: await api.patch('/admin/members/roles', this.members)
+        // 여기서는 role만 저장. (비밀번호는 표에서 수정하지 않으니 제외)
+        await authFetchAPI.patch(`/users/${member.id}/role`, {
+          role: this.currentMemberRole
+        });
         alert('변경 사항이 저장되었습니다.');
       } catch (e) {
-        alert('저장에 실패하였습니다. 다시 시도해주십시오');
+        alert(e?.response?.data?.message ?? '저장에 실패하였습니다. 다시 시도해주십시오');
       }
     },
     async deleteMember(member) {
       const ok = confirm(`[${member.nickname}] 회원을 삭제하시겠습니까?`);
       if (!ok) return;
       try {
-        await authFetchAPI.delete(`/users/${member.id}`)
+        await authFetchAPI.delete(`/users/${member.id}`);
         await this.fetchUsers();
       } catch (error) {
-        this.error = '사용자를 삭제할 수 없습니다.'
-      } 
+        this.error = '사용자를 삭제할 수 없습니다.';
+      }
     },
-    // 카테고리
+    selectedMemberRole(event) {
+      this.currentMemberRole = event.target.value
+      console.log(this.currentMemberRole)
+    },
+
+    /* ---------- 카테고리 ---------- */
     async fetchCategories() {
       try {
-        const response = await fetchAPI.get('/categories')
-        this.categories = response.data
+        const response = await fetchAPI.get('/categories');
+        this.categories = response.data;
       } catch (error) {
-        this.error = '카테고리를 가져오는데 실패했습니다.'
-      }    
+        this.error = '카테고리를 가져오는데 실패했습니다.';
+      }
     },
     startAddCategory() {
       this.isAddingCategory = true;
@@ -240,14 +247,12 @@ export default {
     async confirmAddCategory() {
       if (!this.newCategoryName) return;
       try {
-        await authFetchAPI.post('/categories', { 
-            name: this.newCategoryName
-        })
+        await authFetchAPI.post('/categories', { name: this.newCategoryName });
         await this.fetchCategories();
         this.isAddingCategory = false;
         this.newCategoryName = '';
       } catch (error) {
-          this.error = '카테고리를 생성할 수 없습니다.'
+        this.error = '카테고리를 생성할 수 없습니다.';
       }
     },
     cancelAddCategory() {
@@ -258,30 +263,31 @@ export default {
       const ok = confirm(`'${category.name}' 카테고리를 삭제하시겠습니까?`);
       if (!ok) return;
       try {
-        await authFetchAPI.delete(`/categories/${category.id}`)
+        await authFetchAPI.delete(`/categories/${category.id}`);
         await this.fetchCategories();
       } catch (error) {
-        this.error = '카테고리를 삭제할 수 없습니다.'
-      }    
+        this.error = '카테고리를 삭제할 수 없습니다.';
+      }
     },
-    // 문의사항
+
+    /* ---------- 문의 ---------- */
     async fetchInquiries() {
       try {
-        const response = await authFetchAPI.get('/inquiries')
-        this.inquiries = response.data
+        const response = await fetchAPI.get('/inquiries');
+        this.inquiries = response.data;
       } catch (error) {
-        this.error = '문의사항 목록를 가져오는데 실패했습니다.'
+        this.error = '문의사항 목록를 가져오는데 실패했습니다.';
       }
     },
     async deleteInquiry(inquiry) {
       const ok = confirm(`(${inquiry.user.nickname}) 문의를 삭제하시겠습니까?`);
       if (!ok) return;
       try {
-        await authFetchAPI.delete(`/inquiries/${inquiry.inquiry.id}`)
+        await authFetchAPI.delete(`/inquiries/${inquiry.inquiry.id}`);
         await this.fetchInquiries();
       } catch (error) {
-        this.error = '문의사항을 삭제할 수 없습니다.'
-      }  
+        this.error = '문의사항을 삭제할 수 없습니다.';
+      }
     },
   },
   async created() {
@@ -367,7 +373,7 @@ export default {
 
 /* 우측 콘텐츠 */
 .right-pane {
-  position: relative; /* ✅ 저장 버튼 absolute 기준 */
+  position: relative;
   background: #fff;
   padding: 24px;
 }
@@ -384,23 +390,6 @@ export default {
   clip: rect(1px,1px,1px,1px);
   padding:0!important; border:0!important; height:1px!important; width:1px!important;
   overflow:hidden;
-}
-
-/* ===== 저장 버튼: 우측 하단(우측 하얀 영역 내부) 고정 ===== */
-.save-button {
-  position: absolute;   /* ✅ 부모 .right-pane 기준 */
-  right: 24px;
-  bottom: 24px;
-  background: var(--purple);
-  color: var(--white);
-  border: none;
-  border-radius: 10px;
-  padding: 12px 22px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.save-button:hover {
-  filter: brightness(0.95);
 }
 
 /* ===== 회원 리스트 테이블 ===== */
@@ -456,6 +445,22 @@ export default {
   border-radius: 8px;
   font-size: 12px;
   cursor: pointer;
+}
+.member-delete-btn:hover {
+  filter: brightness(0.95);
+}
+/* ✅ 저장 버튼 */
+.member-save-btn {
+  background: #3C096C;
+  color: #fff;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.member-save-btn:hover {
+  filter: brightness(1.05);
 }
 
 /* ===== 카테고리 칩 ===== */
@@ -556,7 +561,6 @@ export default {
   font-size: 14px;
   color: #000;
 }
-/* 문의사항 삭제 버튼: 카드 우측 하단 */
 .inquiry-delete-btn {
   position: absolute;
   right: 12px;

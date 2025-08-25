@@ -8,7 +8,7 @@ export class InquiryController {
     static routes = express.Router()
 
     static {
-        this.routes.get("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.getInquires)
+        this.routes.get("/", this.getInquires)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin", "member"]), this.createInquiry)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["admin"]), this.deleteInquiry)
     }
@@ -21,8 +21,7 @@ export class InquiryController {
      *      get:
      *          summary: 모든 문의사항 목록 가져오기
      *          tags: [문의사항]
-     *          security:
-     *              - bearerAuth: []
+     *          security: []
      *          responses:
      *              '200':
      *                  description: 문의사항 목록

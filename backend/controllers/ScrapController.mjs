@@ -8,7 +8,7 @@ export class ScrapController {
     static routes = express.Router()
 
     static {
-        this.routes.get("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.getScraps)
+        this.routes.get("/", this.getScraps)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createScrap)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.deleteScrap)
     }
@@ -21,8 +21,7 @@ export class ScrapController {
      *      get:
      *          summary: 모든 스크랩 목록 가져오기
      *          tags: [스크랩]
-     *          security:
-     *              - bearerAuth: []
+     *          security: []
      *          responses:
      *              '200':
      *                  description: 스크랩 목록
@@ -49,6 +48,9 @@ export class ScrapController {
      */
     static async getScraps(req, res) {
         try {
+            if (!req.authenticatedUser || !req.authenticatedUser.id) {
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
             const scraps = await ScrapIdeaModel.getByUserId(req.authenticatedUser.id)
             res.status(200).json(scraps)
         } catch (error) {

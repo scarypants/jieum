@@ -25,7 +25,7 @@
 
 <script>
 // 기존 스크립트 코드 유지 (수정할 필요 없음)
-import axios from 'axios';
+import { fetchAPI } from '@/components/appClient';
 import { mapActions } from 'vuex'; // Vuex 액션 매핑
 
 export default {
@@ -34,7 +34,8 @@ export default {
     return {
       loginId: '',
       loginPassword: '',
-      errorMessage: ''
+      errorMessage: '',
+      inquiries: []
     };
   },
   methods: {
@@ -43,14 +44,19 @@ export default {
     async handleLogin() {
       this.errorMessage = ''; // 에러 메시지 초기화
       try {
-        const response = await axios.post('http://localhost:8080/api/auth', {
+        if (this.inquiries.find(inquiry => inquiry.user.loginId == this.loginId)) {
+          alert('탈퇴한 회원입니다.')
+          this.$router.push('/')
+          return
+        }
+        const response = await fetchAPI.post('/auth', {
           loginId: this.loginId,
           password: this.loginPassword
         });
 
         // 로그인 성공 시 Vuex 액션 호출 및 리다이렉트
         // 백엔드에서 jwt 토큰을 줌
-        const { authenticatedUser, token } = response.data; 
+        const { authenticatedUser, token } = response.data;
         this.login({ user: authenticatedUser, token }); // Vuex에 로그인 상태 저장
 
         alert('로그인 성공!');
@@ -82,7 +88,18 @@ export default {
           this.errorMessage = '로그인 실패: 네트워크 연결을 확인하거나 서버가 실행 중인지 확인해주세요.';
         }
       }
+    },
+    async fetchInquiries() {
+      try {
+        const response = await fetchAPI.get('/inquiries');
+        this.inquiries = response.data;
+      } catch (error) {
+        this.error = '문의사항 목록를 가져오는데 실패했습니다.';
+      }
     }
+  },
+  async created() {
+    await this.fetchInquiries()
   }
 };
 </script>

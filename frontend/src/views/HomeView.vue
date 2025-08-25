@@ -75,7 +75,7 @@
 
           <!-- 작성자/작성일 -->
           <div class="idea-footer">
-            <span class="nickname">by {{ item.idea.nickname }}</span>
+            <span class="nickname">by {{ item.writer.nickname }}</span>
             <span class="created-at">{{ formatDate(item.idea.createdAt) }}</span>
           </div>
         </div>
@@ -115,11 +115,22 @@ export default {
       return found ? found.label : '정렬';
     }
   },
+  watch: {
+    "$route.query.search": {
+      immediate: true,
+      handler(newSearch) {
+        if (newSearch) {
+          this.searchTerm = newSearch
+          this.fetchAllContent()
+          this.$router.replace({ query: {} })
+        }
+      }
+    }
+  },
   methods: {
     formatDate(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleDateString();
-      
     },
     goWriteIdea() {
     const isLoggedIn = this.$store?.getters?.isLoggedIn;
@@ -167,10 +178,11 @@ export default {
       this.currentCategory = category;
       this.fetchAllContent();
     },
-    viewAllContent() {
+    async viewAllContent() {
       this.currentCategory = '카테고리별';
       this.currentSort = 'latest';
-      this.fetchAllContent();
+      this.searchTerm = null
+      await this.fetchAllContent();
     },
     goToIdea(id) {
       this.$router.push(`/idea/${id}`);
