@@ -15,7 +15,7 @@ export class IdeaController {
         this.routes.get("/:id", this.getIdea)
         this.routes.post("/", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.createIdea)
         this.routes.patch("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateIdea)
-        this.routes.patch("/:id/views", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateViewCount)
+        this.routes.patch("/:id/views", this.updateViewCount)
         this.routes.patch("/:id/scraps", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateScrapCount)
         this.routes.patch("/:id/comments", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.updateCommentCount)
         this.routes.delete("/:id", AuthenticationController.AuthenticationProvider, AuthenticationController.restrict(["member", "admin"]), this.deleteIdea)
@@ -474,8 +474,7 @@ export class IdeaController {
      *      patch:
      *          summary: 아이디어 조회수 1 추가
      *          tags: [아이디어]
-     *          security:
-     *              - bearerAuth: []
+     *          security: []
      *          parameters:
      *              - name: id
      *                in: path

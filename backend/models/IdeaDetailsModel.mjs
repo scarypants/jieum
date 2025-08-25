@@ -110,7 +110,7 @@ export class IdeaDetailsModel extends DatabaseModel {
         return this.query(sql, values)
             .then(result => {
                 if (result.length === 0) return Promise.reject("not found")
-
+                
                 return result.map(row => new IdeaDetailsModel(
                     IdeaModel.tableToModel(row.ideas),
                     UserModel.tableToModel({ nickname: row.writer.writer_nickname }),
@@ -189,14 +189,15 @@ export class IdeaDetailsModel extends DatabaseModel {
             .then(result => {
                 if (result.length === 0) return Promise.reject("not found")
                 const row = result[0];
-                console.log(JSON.stringify(row.comments))
+                const tags = row['']?.tags ?? [];
+                const comments = row['']?.comments ?? [];
 
                 return new IdeaDetailsModel(
                     IdeaModel.tableToModel(row.ideas),
                     UserModel.tableToModel({ nickname: row.writer.writer_nickname }),
                     CategoryModel.tableToModel({ name: row.categories.name }),
-                    JSON.parse(row.tags || '[]').map(tag => TagModel.tableToModel({ tag_id: tag.id, name: tag.name })),
-                    JSON.parse(row.comments || '[]').map(comment => ({
+                    tags.map(tag => TagModel.tableToModel({ tag_id: tag.id, name: tag.name })),
+                    comments.map(comment => ({
                         comment: CommentModel.tableToModel({
                             comment_id: comment.comment.id,
                             writer_id:  comment.comment.writerId,

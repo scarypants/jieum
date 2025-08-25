@@ -10,6 +10,7 @@
         alt="스크랩 아이콘"
         class="scrap-icon"
         @click="toggleScrap"
+        v-if="isLoggedIn"
       />
 
       <!-- 제목 -->
@@ -52,7 +53,7 @@
         <p>{{ comment.comment.content }}</p>
       </div>
 
-      <div class="comment-input mt-3">
+      <div class="comment-input mt-3" v-if="isLoggedIn">
         <textarea
           v-model="newComment"
           class="form-control"
@@ -67,6 +68,7 @@
 
 <script>
 import { fetchAPI, authFetchAPI } from '@/components/appClient';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'IdeaReadView',
@@ -80,6 +82,9 @@ export default {
       newComment: ''
     };
   },
+  computed: {
+    ...mapGetters(['isLoggedIn'])
+  },
   methods: {
     async fetchIdea() {
       try {
@@ -91,7 +96,7 @@ export default {
     },
     async fetchScraps() {
       try {
-        const response = await authFetchAPI.get('/scraps')
+        const response = await fetchAPI.get('/scraps')
         const scraps = response.data
         const found = scraps.find(scrap => scrap.scrap.ideaId == this.id)
         if (found) {
@@ -163,7 +168,9 @@ export default {
   },
   async created() {
     await this.fetchIdea();
-    await this.fetchScraps();
+    if (this.isLoggedIn) {
+      await this.fetchScraps();
+    }
   }
 };
 </script>

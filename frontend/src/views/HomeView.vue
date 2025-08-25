@@ -184,8 +184,13 @@ export default {
       this.searchTerm = null
       await this.fetchAllContent();
     },
-    goToIdea(id) {
-      this.$router.push(`/idea/${id}`);
+    async goToIdea(id) {
+      try {
+        await fetchAPI.patch(`/ideas/${id}/views`)
+        this.$router.push(`/idea/${id}`);
+      } catch (error) {
+        this.error = '아이디어를 조회할 수 없습니다.'
+      }
     }
   },
   async created() {

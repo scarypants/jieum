@@ -110,7 +110,7 @@
 </template>
 
 <script>
-import { authFetchAPI } from '@/components/appClient';
+import { fetchAPI, authFetchAPI } from '@/components/appClient';
 import { mapActions } from 'vuex';
 
 export default {
@@ -176,8 +176,13 @@ export default {
     goToEdit() {
       this.$router.push('/profile-edit');
     },
-    goToIdea(id) {
-      this.$router.push(`/idea/${id}`);
+    async goToIdea(id) {
+      try {
+        await fetchAPI.patch(`/ideas/${id}/views`)
+        this.$router.push(`/idea/${id}`);
+      } catch (error) {
+        this.error = '아이디어를 조회할 수 없습니다.'
+      }
     },
     selectTab(tab) {
       this.selectedTab = tab;
