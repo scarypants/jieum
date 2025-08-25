@@ -96,7 +96,7 @@ export default {
     },
     async fetchScraps() {
       try {
-        const response = await fetchAPI.get('/scraps')
+        const response = await authFetchAPI.get('/scraps')
         const scraps = response.data
         const found = scraps.find(scrap => scrap.scrap.ideaId == this.id)
         if (found) {
@@ -114,18 +114,24 @@ export default {
       }    
     },
     async toggleScrap() {
+      const ideaId = Number(this.id)
       if (this.isScrapped) {
         try {
           await authFetchAPI.delete(`/scraps/${this.scrap.scrap.id}`)
+          await authFetchAPI.patch(`/ideas/${ideaId}/scraps`, {
+            action: "sub"
+          })
           alert("삭제되었습니다.")
         } catch (error) {
           this.error = error.message ?? '스크랩을 삭제할 수 없습니다.'
         }  
       } else {
         try {
-          const ideaId = Number(this.id)
           await authFetchAPI.post('/scraps', {
             ideaId
+          })
+          await authFetchAPI.patch(`/ideas/${ideaId}/scraps`, {
+            action: "add"
           })
         } catch (error) {
           this.error = error.message ?? '스크랩을 생성할 수 없습니다.'
