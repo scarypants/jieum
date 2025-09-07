@@ -40,6 +40,12 @@ const routes = [
     component: () => import('@/views/AdminDashboard.vue'),
     meta: { requiresAdmin: true }, // ✅ 관리자만 접근
   },
+  {
+    path: '/ideaedit/:id',
+    name: 'IdeaEdit',
+    component: () => import('@/views/IdeaEdit.vue'),
+    meta: { requiresAuth: true }, // 로그인 필요
+  },
 ];
 
 const router = createRouter({

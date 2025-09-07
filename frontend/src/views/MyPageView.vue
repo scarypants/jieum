@@ -69,7 +69,7 @@
 
           <!-- 내 아이디어에만 수정/삭제 버튼 -->
           <div class="idea-actions">
-            <button class="edit-mini" @click.stop="goToIdea(idea.id)">수정</button>
+            <button class="edit-mini" @click.stop="goToEditIdea(idea.id)">수정</button>
             <button class="delete-mini" @click.stop="deleteIdea(idea.id)">삭제</button>
           </div>
         </div>
@@ -183,6 +183,9 @@ export default {
       } catch (error) {
         this.error = '아이디어를 조회할 수 없습니다.'
       }
+    },
+    goToEditIdea(id) {
+      this.$router.push(`/ideaedit/${id}`);    
     },
     selectTab(tab) {
       this.selectedTab = tab;

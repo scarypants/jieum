@@ -1,8 +1,8 @@
 <template>
-  <div class="idea-write-container">
-    <!-- 카테고리 드롭다운 버튼 -->
+  <div class="idea-write-container" v-if="ideaLoaded">
+    <!-- 카테고리 드롭다운 -->
     <div class="dropdown category-dropdown mb-3">
-      <button class="idea-button dropdown-toggle" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <button class="idea-button dropdown-toggle" id="categoryDropdown" data-bs-toggle="dropdown">
         {{ currentCategory }}
       </button>
       <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
@@ -16,24 +16,23 @@
 
     <!-- 노트 스타일 입력 영역 -->
     <div class="note-paper">
-      <!-- 제목 입력 -->
+      <!-- 제목 -->
       <input
         type="text"
         v-model="title"
-        placeholder="제목을 입력하세요"
         class="note-title"
+        placeholder="제목을 입력하세요"
       />
 
-      <!-- 본문 입력 (자동 높이 조절) -->
+      <!-- 본문 -->
       <textarea
         v-model="content"
         ref="contentArea"
-        placeholder="아이디어 내용을 작성해보세요"
         class="note-content"
         @input="resizeTextarea"
       ></textarea>
 
-      <!-- 해시태그 입력 -->
+      <!-- 해시태그 -->
       <input
         type="text"
         v-model="tagsInput"
@@ -41,22 +40,28 @@
         class="note-tags"
       />
 
-      <!-- 등록 버튼 -->
+      <!-- 수정 저장 버튼 -->
       <div class="submit-area">
-        <button class="submit-button" @click="submitIdea">
-          등록하기
+        <button class="submit-button" @click="updateIdea">
+          수정 저장
         </button>
       </div>
     </div>
   </div>
+
+  <div v-else class="idea-write-container">불러오는 중...</div>
 </template>
 
 <script>
 import { fetchAPI, authFetchAPI } from '@/components/appClient';
+
 export default {
-  name: 'IdeaPost',
+  name: 'IdeaEdit',
   data() {
     return {
+      ideaLoaded: false,
+      id: this.$route.params.id,
+      writerId: '',
       title: '',
       content: '',
       currentCategory: '카테고리 선택',
@@ -67,35 +72,50 @@ export default {
   methods: {
     async fetchCategories() {
       try {
-        const response = await fetchAPI.get('/categories')
-        this.categories = response.data
-      } catch (error) {
-        this.error = error.message ?? '카테고리를 가져오는데 실패했습니다.'
-      }   
+        const res = await fetchAPI.get('/categories');
+        this.categories = res.data;
+      } catch (e) {
+        alert('카테고리를 불러올 수 없습니다.');
+      }
     },
-    // 카테고리 선택 시 값 저장함
-    async selectedCategory(category) {
+    async fetchIdea() {
+      try {
+        const res = await fetchAPI.get(`/ideas/${this.id}`);
+        const data = res.data;
+
+        // 기존 데이터 채우기
+        this.writerId = data.idea.writerId
+        this.title = data.idea.title;
+        this.content = data.idea.content;
+        this.currentCategory = this.categories.find(c => c.id === data.idea.categoryId)?.name || '카테고리 선택';
+        this.tagsInput = (data.tags || []).map(tag => tag.name).join(', ');
+
+        this.ideaLoaded = true;
+      } catch (e) {
+        alert('아이디어를 불러올 수 없습니다.');
+      }
+    },
+    selectedCategory(category) {
       this.currentCategory = category;
     },
     selectedCategoryId() {
-      if (this.currentCategory == '카테고리 선택') return
-      const found = this.categories.find(option => option.name === this.currentCategory)
-      return found.id
+      const found = this.categories.find(c => c.name === this.currentCategory);
+      return found ? found.id : null;
     },
-    // 아이디어 등록 시 localStorage에 저장하고 메인 페이지로 이동함
-    async submitIdea() {
+    async updateIdea() {
       if (!this.title || !this.content || !this.selectedCategoryId()) {
         alert('제목, 내용, 카테고리를 모두 입력해주세요.');
         return;
       }
 
       const tagNames = this.tagsInput
-                      .split(',')
-                      .map(tag => tag.trim())
-                      .filter(tag => tag);
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag);
 
-      const newIdea = {
+      const updatedIdea = {
         idea: {
+          writerId: this.writerId,
           categoryId: this.selectedCategoryId(),
           title: this.title,
           content: this.content
@@ -104,14 +124,13 @@ export default {
       };
 
       try {
-        await authFetchAPI.post('/ideas', newIdea)
-      } catch (error) {
-        this.error = error.message ?? '아이디어를 생성할 수 없습니다.'
+        await authFetchAPI.patch(`/ideas/${this.id}`, updatedIdea);
+        alert('수정이 완료되었습니다.');
+        this.$router.push(`/idea/${this.id}`);
+      } catch (e) {
+        alert('수정에 실패했습니다. 다시 시도해주세요.');
       }
-      
-      this.$router.push('/');
     },
-    // textarea 높이를 내용에 따라 자동 조절함
     resizeTextarea() {
       const area = this.$refs.contentArea;
       if (area) {
@@ -122,41 +141,19 @@ export default {
   },
   async created() {
     await this.fetchCategories();
+    await this.fetchIdea();
   }
-}
+};
 </script>
 
 <style scoped>
-/* 페이지 전체 배경 흰색으로 설정함 */
+/* Idea.vue와 동일 스타일 유지 */
 .idea-write-container {
   background-color: white;
   padding: 60px 20px;
   max-width: 900px;
   margin: 0 auto;
 }
-
-.idea-button { /* 카테고리 버튼 스타일 */
-  display: inline-block;
-  padding: 8px 15px;
-  background-color: #f8f5f9;
-  border: 2px solid #5C1E94;
-  color: #5C1E94;
-  border-radius: 20px;
-  text-decoration: none;
-  font-weight: bold;
-  font-family: 'Noto Sans KR', sans-serif;
-  transition: all 0.3s ease;
-}
-
-
-.idea-button:hover { /* 카테고리 버튼 호버 효과 */
-  background-color: #e8e0f0;
-  color: #4B0082;
-  border-color: #4B0082;
-}
-
-
-/* 노트 배경 스타일 지정함 */
 .note-paper {
   background-color: #FFF9DB;
   border: 1px solid #E5D89A;
@@ -171,56 +168,29 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  position: relative;
 }
-
-/* 제목 입력창 */
-.note-title {
-  width: 100%;
+.note-title{
   font-size: 20px;
   font-weight: bold;
-  border: none;
+  border: none; 
   background: transparent;
   outline: none;
 }
 
-/* 본문 입력창 (자동 높이 적용) */
-.note-content {
-  width: 100%;
-  font-size: 15px;
-  line-height: 36px;
-  border: none;
+.note-content, .note-tags {
+  border: none; 
   background: transparent;
-  resize: none;
   outline: none;
+}
+.note-content {
+  resize: none;
   overflow: hidden;
-  height: auto;
   min-height: 200px;
 }
-
-/* 해시태그 입력창 */
-.note-tags {
-  width: 100%;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.5;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  background: transparent;
-  outline: none;
-  padding: 6px 0;
-}
-.note-tags::placeholder {
-  color: #aaa;
-}
-
-/* 등록 버튼 우측 하단 정렬 */
 .submit-area {
   display: flex;
   justify-content: flex-end;
 }
-
-/* 등록 버튼 디자인 (색상은 자유롭게 수정 가능) */
 .submit-button {
   padding: 8px 20px;
   font-weight: bold;
@@ -233,5 +203,13 @@ export default {
 }
 .submit-button:hover {
   opacity: 0.85;
+}
+.idea-button {
+  padding: 8px 15px;
+  border-radius: 20px;
+  border: 2px solid #5C1E94;
+  color: #5C1E94;
+  background: #f8f5f9;
+  font-weight: bold;
 }
 </style>
